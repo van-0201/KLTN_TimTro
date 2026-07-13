@@ -33,9 +33,9 @@ namespace TimTro_Backend.Services.Report
                 {
                     if (file.Length > 0)
                     {
-                        var url = await _cloudinaryService.UploadImageAsync(file);
-                        if (!string.IsNullOrEmpty(url))
-                            minhChungUrls.Add(url);
+                        var result = await _cloudinaryService.UploadImageAsync(file);
+                        if (!string.IsNullOrEmpty(result.Url))
+                            minhChungUrls.Add(result.Url);
                     }
                 }
             }

@@ -222,14 +222,14 @@ namespace TimTro_Backend.Services.RoomPost
             {
                 foreach (var img in request.Images)
                 {
-                    var url = await _cloudinary.UploadImageAsync(img);
-                    if (!string.IsNullOrEmpty(url))
+                    var result = await _cloudinary.UploadImageAsync(img);
+                    if (!string.IsNullOrEmpty(result.Url))
                     {
                         _context.RoomImages.Add(new RoomImage
                         {
                             RoomPostId = post.Id,
-                            DuongDanHinhAnh = url,
-                            MaDinhDanhCloudinary = ""
+                            DuongDanHinhAnh = result.Url,
+                            MaDinhDanhCloudinary = result.PublicId ?? ""
                         });
                     }
                 }
@@ -310,10 +310,24 @@ namespace TimTro_Backend.Services.RoomPost
             if (request.ExistingImages != null)
             {
                 var imagesToRemove = post.RoomImages.Where(img => !request.ExistingImages.Contains(img.DuongDanHinhAnh)).ToList();
+                foreach (var img in imagesToRemove)
+                {
+                    if (!string.IsNullOrEmpty(img.MaDinhDanhCloudinary))
+                    {
+                        await _cloudinary.DeleteImageAsync(img.MaDinhDanhCloudinary);
+                    }
+                }
                 _context.RoomImages.RemoveRange(imagesToRemove);
             }
             else
             {
+                foreach (var img in post.RoomImages)
+                {
+                    if (!string.IsNullOrEmpty(img.MaDinhDanhCloudinary))
+                    {
+                        await _cloudinary.DeleteImageAsync(img.MaDinhDanhCloudinary);
+                    }
+                }
                 _context.RoomImages.RemoveRange(post.RoomImages); 
             }
 
@@ -321,14 +335,14 @@ namespace TimTro_Backend.Services.RoomPost
             {
                 foreach (var img in request.NewImages)
                 {
-                    var url = await _cloudinary.UploadImageAsync(img);
-                    if (!string.IsNullOrEmpty(url))
+                    var result = await _cloudinary.UploadImageAsync(img);
+                    if (!string.IsNullOrEmpty(result.Url))
                     {
                         _context.RoomImages.Add(new RoomImage
                         {
                             RoomPostId = post.Id,
-                            DuongDanHinhAnh = url,
-                            MaDinhDanhCloudinary = ""
+                            DuongDanHinhAnh = result.Url,
+                            MaDinhDanhCloudinary = result.PublicId ?? ""
                         });
                     }
                 }
@@ -358,6 +372,7 @@ namespace TimTro_Backend.Services.RoomPost
             var post = await _context.RoomPosts
                 .Include(rp => rp.Appointments)
                 .Include(rp => rp.Reports)
+                .Include(rp => rp.RoomImages)
                 .FirstOrDefaultAsync(rp => rp.Id == id && rp.ChuTroId == userId);
                 
             if (post == null) return (false, "Bài đăng không tồn tại hoặc bạn không có quyền xóa.");
@@ -370,6 +385,18 @@ namespace TimTro_Backend.Services.RoomPost
             if (post.Reports != null && post.Reports.Any(r => r.TrangThaiXuLy == "ChoXuLy"))
             {
                 return (false, "Không thể xóa vì bài đăng đang bị báo cáo vi phạm và chờ Admin xử lý.");
+            }
+
+            // Remove images from Cloudinary
+            if (post.RoomImages != null)
+            {
+                foreach (var img in post.RoomImages)
+                {
+                    if (!string.IsNullOrEmpty(img.MaDinhDanhCloudinary))
+                    {
+                        await _cloudinary.DeleteImageAsync(img.MaDinhDanhCloudinary);
+                    }
+                }
             }
 
             _context.RoomPosts.Remove(post);

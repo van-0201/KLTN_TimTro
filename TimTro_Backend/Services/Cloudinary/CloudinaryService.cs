@@ -21,9 +21,9 @@ namespace TimTro_Backend.Services.Cloudinary
             _cloudinary = new CloudinaryDotNet.Cloudinary(account);
         }
 
-        public async Task<string> UploadImageAsync(IFormFile file)
+        public async Task<(string Url, string PublicId)> UploadImageAsync(IFormFile file)
         {
-            if (file == null || file.Length == 0) return null;
+            if (file == null || file.Length == 0) return (null, null);
 
             using var stream = file.OpenReadStream();
             var uploadParams = new ImageUploadParams
@@ -33,7 +33,7 @@ namespace TimTro_Backend.Services.Cloudinary
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            return uploadResult.SecureUrl.ToString();
+            return (uploadResult.SecureUrl.ToString(), uploadResult.PublicId);
         }
 
         public async Task<bool> DeleteImageAsync(string publicId)

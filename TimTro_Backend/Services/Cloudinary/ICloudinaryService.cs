@@ -5,7 +5,7 @@ namespace TimTro_Backend.Services.Cloudinary
 {
     public interface ICloudinaryService
     {
-        Task<string> UploadImageAsync(IFormFile file);
+        Task<(string Url, string PublicId)> UploadImageAsync(IFormFile file);
         Task<bool> DeleteImageAsync(string publicId);
     }
 }
