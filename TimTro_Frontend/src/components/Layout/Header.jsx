@@ -60,10 +60,23 @@ const Header = () => {
         navigate('/login');
     };
 
+    const getHeaderTitle = () => {
+        if (!isLoggedIn || !authUser) return 'Khám phá phòng trọ';
+        switch (authUser.role) {
+            case 'Admin':
+            case 'Moderator':
+                return 'Quản trị hệ thống';
+            case 'ChuTro':
+                return 'Quản lý phòng cho thuê';
+            default:
+                return 'Khám phá phòng trọ';
+        }
+    };
+
     return (
         <header className="header">
             <div className="header-left">
-                <div className="header-title">Quản lý hệ thống</div>
+                <div className="header-title">{getHeaderTitle()}</div>
             </div>
             <div className="header-right">
                 {isLoggedIn ? (
