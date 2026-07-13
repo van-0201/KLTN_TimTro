@@ -1,0 +1,26 @@
+# Backend sensitive files
+TimTro_Backend/appsettings.json
+TimTro_Backend/appsettings.Development.json
+
+# Personal / document files
+Anh/
+Document/
+word_output.txt
+read_word.ps1
+*.lnk
+
+# Node.js
+TimTro_Frontend/node_modules/
+TimTro_Frontend/dist/
+TimTro_Frontend/.env
+
+# C# build artifacts
+TimTro_Backend/bin/
+TimTro_Backend/obj/
+TimTro_Backend/.vs/
+
+# Miscellaneous IDE files
+.vscode/
+.idea/
+*.user
+*.suo
