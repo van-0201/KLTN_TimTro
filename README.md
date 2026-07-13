@@ -6,7 +6,18 @@ Dự án này bao gồm 2 phần chính: **Backend** (ASP.NET Core Web API) và 
 Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các phần mềm sau:
 1. **[Node.js](https://nodejs.org/en/)** (Phiên bản 18+ để chạy Frontend).
 2. **[.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)** (Hoặc phiên bản .NET tương ứng với dự án để chạy Backend).
-3. **[MySQL Server](https://dev.mysql.com/downloads/installer/)** (Hệ quản trị cơ sở dữ liệu).
+3. **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Dùng để chạy Database MySQL nhanh chóng mà không cần cài đặt rườm rà).
+
+---
+
+## 🗄️ Thiết lập Cơ sở dữ liệu (Database) bằng Docker
+Để hệ thống có nơi lưu trữ dữ liệu, chúng ta sẽ bật MySQL thông qua Docker:
+1. Đảm bảo phần mềm Docker Desktop đang mở.
+2. Tại thư mục gốc của dự án, mở Terminal/CMD và chạy:
+   ```bash
+   docker-compose up -d
+   ```
+*(Lệnh này sẽ tự động tải MySQL về và khởi chạy ở cổng `3307` với tài khoản `root` và mật khẩu `admin_password_123`).*
 
 ---
 
@@ -17,11 +28,10 @@ Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các p
    cd TimTro_Backend
    ```
 
-2. Cấu hình các biến môi trường và Database:
-   - Trong thư mục Backend, tìm file `appsettings.example.json`.
-   - Tạo một bản sao của file này và đổi tên thành `appsettings.json`.
+2. Cấu hình các biến môi trường:
+   - Tạo một bản sao của file `appsettings.example.json` và đổi tên thành `appsettings.json`.
    - Mở file `appsettings.json` vừa tạo và điền các thông tin bảo mật của bạn:
-     - **Database:** Điền mật khẩu MySQL của máy bạn vào chuỗi `ConnectionStrings:DefaultConnection`. Đảm bảo port và username khớp với máy tính của bạn (Mặc định thường là port 3306, user `root`).
+     - **Database:** Chuỗi kết nối mặc định đã cấu hình sẵn cổng 3307 và mật khẩu để khớp với Docker Compose ở trên. Bạn không cần đổi nếu dùng Docker.
      - **Cloudinary:** Thay thế các thông số `CloudName`, `ApiKey`, `ApiSecret` bằng thông tin lấy từ tài khoản Cloudinary của bạn (Dùng để upload ảnh).
      - **JWT:** Thay thế đoạn `Key` bằng một chuỗi ngẫu nhiên, bí mật và đủ dài (ít nhất 16 ký tự).
 
@@ -29,13 +39,12 @@ Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các p
    ```bash
    dotnet ef database update
    ```
-   *(Lệnh này sẽ tự động tạo cơ sở dữ liệu `timtro_db` và các bảng tương ứng trong MySQL của bạn).*
+   *(Lệnh này sẽ tự động tạo cơ sở dữ liệu `timtro_db` và các bảng tương ứng trong container MySQL).*
 
 4. Chạy server Backend:
    ```bash
    dotnet run
    ```
-   Backend của bạn sẽ khởi chạy (Thông thường ở địa chỉ `http://localhost:5000` hoặc tuỳ thuộc vào file `launchSettings.json`).
 
 ---
 
@@ -46,7 +55,7 @@ Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các p
    cd TimTro_Frontend
    ```
 
-2. Cài đặt các thư viện phụ thuộc (Dependencies):
+2. Cài đặt các thư viện phụ thuộc:
    ```bash
    npm install
    ```
@@ -62,4 +71,4 @@ Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các p
 ---
 
 ## 🚀 Hoàn thành
-Bây giờ cả Frontend và Backend đều đã được liên kết với nhau. Bạn có thể tạo tài khoản, đăng nhập và trải nghiệm toàn bộ tính năng của dự án!
+Bây giờ cả Database, Backend và Frontend đều đã hoạt động. Bạn có thể tạo tài khoản, đăng nhập và trải nghiệm dự án!
