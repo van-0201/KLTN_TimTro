@@ -235,11 +235,16 @@ const EditRoomPost = () => {
                 formDataToSend.append('NewImages', file);
             });
 
-            await api.put(`/RoomPost/${id}`, formDataToSend, {
+            const response = await api.put(`/RoomPost/${id}`, formDataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            alert('Cập nhật thành công! Bài viết đã được gửi duyệt lại.');
+            if (response.data.trangThaiKiemDuyet === 'ChoDuyet') {
+                alert('Cập nhật thành công! Bài viết đã thay đổi nội dung và được gửi đi kiểm duyệt lại.');
+            } else {
+                alert('Cập nhật thành công! (Không có thay đổi nào cần duyệt lại).');
+            }
+            
             navigate('/my-posts');
         } catch (err) {
             console.error(err);
