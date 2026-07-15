@@ -27,6 +27,9 @@ namespace TimTro_Backend.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
+            if (User.IsInRole("ChuTro") || User.IsInRole("Admin") || User.IsInRole("Moderator"))
+                return Forbid();
+
             var appt = await _appointmentService.CreateAppointmentAsync(userId, request);
             return Ok(appt);
         }

@@ -34,7 +34,12 @@ namespace TimTro_Backend.Services.RoomPost
 
             if (!string.IsNullOrEmpty(searchKeyword))
             {
-                query = query.Where(rp => rp.TieuDe.Contains(searchKeyword) || rp.DiaChiChiTiet.Contains(searchKeyword));
+                var tokens = searchKeyword.Split(new[] { ' ', ',', '.', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var token in tokens)
+                {
+                    var t = token.Trim();
+                    query = query.Where(rp => rp.TieuDe.Contains(t) || rp.DiaChiChiTiet.Contains(t));
+                }
             }
 
             if (minPrice.HasValue) query = query.Where(rp => rp.GiaThue >= minPrice.Value);
@@ -170,6 +175,16 @@ namespace TimTro_Backend.Services.RoomPost
 
             if (post == null) return null;
             return MapToResponse(post);
+        }
+
+        public async Task IncrementViewCountAsync(Guid id)
+        {
+            var post = await _context.RoomPosts.FindAsync(id);
+            if (post != null)
+            {
+                post.LuotXem++;
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<RoomPostResponse> CreateAsync(Guid userId, CreateRoomPostRequest request, List<IFormFile> images)
@@ -434,6 +449,7 @@ namespace TimTro_Backend.Services.RoomPost
                 TrangThaiKiemDuyet = post.TrangThaiKiemDuyet,
                 IsHidden = post.IsHidden,
                 TienIch = post.TienIch,
+                LuotXem = post.LuotXem,
                 NguoiDangTen = post.ChuTro?.HoTen ?? "",
                 NguoiDangPhone = post.ChuTro?.SoDienThoai ?? "",
                 Images = post.RoomImages?.Select(i => i.DuongDanHinhAnh).ToList() ?? new List<string>()

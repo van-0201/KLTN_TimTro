@@ -6,6 +6,7 @@ import './styles/layout.css';
 import { getAuthUser, isLoggedIn } from './utils/auth';
 
 // Pages
+import Home from './pages/Home/Home';
 import RoomPostList from './pages/RoomPost/RoomPostList';
 import RoomPostDetail from './pages/RoomPost/RoomPostDetail';
 import MyRoomPosts from './pages/RoomPost/MyRoomPosts';
@@ -68,7 +69,7 @@ function App() {
                             <div className="content-area">
                                 <Routes>
                                     {/* Public - Ai cũng xem được kể cả chưa đăng nhập */}
-                                    <Route path="/" element={<RoomPostList />} />
+                                    <Route path="/" element={<Home />} />
                                     <Route path="/room-posts" element={<RoomPostList />} />
                                     <Route path="/room-posts/:id" element={<RoomPostDetail />} />
 

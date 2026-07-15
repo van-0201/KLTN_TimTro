@@ -7,7 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../../styles/roompost.css';
-import { getAuthUser } from '../../utils/auth';
+import { getAuthUser, isChuTro, isAdminOrModerator, isLoggedIn } from '../../utils/auth';
 
 // Fix Leaflet marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,6 +43,12 @@ const RoomPostDetail = () => {
     const [bookingAppointment, setBookingAppointment] = useState(false);
 
     const handleBookAppointment = async () => {
+        if (!isLoggedIn()) {
+            if (window.confirm("Bạn cần đăng nhập để đặt lịch. Bạn có muốn chuyển đến trang đăng nhập không?")) {
+                navigate('/login');
+            }
+            return;
+        }
         if (!appointmentDate || !appointmentTime) return;
         setBookingAppointment(true);
         try {
@@ -121,6 +127,14 @@ const RoomPostDetail = () => {
                 console.error("Lỗi khi tải chi tiết bài đăng:", error);
             } finally {
                 setLoading(false);
+
+                // Logic tăng lượt xem thông minh
+                const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
+                if (!viewedPosts.includes(id)) {
+                    api.post(`/RoomPost/${id}/view`).catch(err => console.error(err));
+                    viewedPosts.push(id);
+                    localStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
+                }
 
                 // Check if need to scroll
                 const searchParams = new URLSearchParams(location.search);
@@ -380,7 +394,7 @@ const RoomPostDetail = () => {
                         )}
 
                         {/* Form Đặt Lịch Hẹn Nội Tuyến */}
-                        {context === 'viewer' && (
+                        {context === 'viewer' && !isChuTro() && !isAdminOrModerator() && (
                             <div ref={appointmentRef} style={{ marginBottom: '40px', padding: '24px', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                 <h3 style={{ margin: '0 0 16px 0', fontSize: '22px', color: 'var(--text-main)', borderBottom: '2px solid var(--border-color)', paddingBottom: '10px' }}>Đặt lịch xem phòng</h3>
                                 <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Chọn thời gian bạn muốn đến xem phòng. Chủ trọ sẽ nhận được yêu cầu và xác nhận với bạn.</p>
@@ -495,16 +509,30 @@ const RoomPostDetail = () => {
                                     </>
                                 )}
 
-                                {context === 'viewer' && (
+                                {context === 'viewer' && !isChuTro() && !isAdminOrModerator() && (
                                     <>
                                         <button className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '16px', fontWeight: 'bold' }} onClick={() => {
+                                            if (!isLoggedIn()) {
+                                                if (window.confirm("Bạn cần đăng nhập để đặt lịch. Bạn có muốn chuyển đến trang đăng nhập không?")) {
+                                                    navigate('/login');
+                                                }
+                                                return;
+                                            }
                                             if (appointmentRef.current) {
                                                 appointmentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                             }
                                         }}>
                                             Đặt lịch xem phòng
                                         </button>
-                                        <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', color: '#ef4444', borderColor: 'transparent', background: 'rgba(239, 68, 68, 0.1)', padding: '14px', fontSize: '16px', fontWeight: 'bold' }} onClick={() => setShowReportModal(true)}>
+                                        <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center', color: '#ef4444', borderColor: 'transparent', background: 'rgba(239, 68, 68, 0.1)', padding: '14px', fontSize: '16px', fontWeight: 'bold' }} onClick={() => {
+                                            if (!isLoggedIn()) {
+                                                if (window.confirm("Bạn cần đăng nhập để báo cáo. Bạn có muốn chuyển đến trang đăng nhập không?")) {
+                                                    navigate('/login');
+                                                }
+                                                return;
+                                            }
+                                            setShowReportModal(true);
+                                        }}>
                                             ⚠️ Báo cáo vi phạm
                                         </button>
                                     </>

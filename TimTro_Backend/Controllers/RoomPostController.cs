@@ -70,6 +70,13 @@ namespace TimTro_Backend.Controllers
             return Ok(post);
         }
 
+        [HttpPost("{id}/view")]
+        public async Task<IActionResult> IncrementViewCount(Guid id)
+        {
+            await _roomPostService.IncrementViewCountAsync(id);
+            return Ok();
+        }
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateRoomPostRequest request)

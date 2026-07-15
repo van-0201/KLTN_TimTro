@@ -52,6 +52,7 @@ namespace TimTro_Backend.DTOs
         public string TrangThaiKiemDuyet { get; set; } = string.Empty;
         public bool IsHidden { get; set; }
         public string TienIch { get; set; } = "[]";
+        public int LuotXem { get; set; }
         
         // Joined info
         public string NguoiDangTen { get; set; } = string.Empty;

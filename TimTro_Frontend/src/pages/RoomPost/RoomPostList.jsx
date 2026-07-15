@@ -4,6 +4,7 @@ import { FaPlus, FaMapMarkerAlt, FaRulerCombined, FaTag, FaSearch, FaCheck, FaLo
 import api from '../../services/api';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Circle } from 'react-leaflet';
 import Pagination from '../../components/Common/Pagination';
+import { isChuTro, isAdminOrModerator, isLoggedIn } from '../../utils/auth';
 import 'leaflet/dist/leaflet.css';
 import '../../styles/roompost.css';
 
@@ -138,6 +139,23 @@ const RoomPostList = () => {
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
+
+        // Tự động xóa điểm ghim nếu nhập từ khóa địa chỉ
+        if (name === 'search' && value.trim() !== '') {
+            setUserLocation(null);
+        }
+    };
+
+    const handlePriceChange = (e) => {
+        const { name, value } = e.target;
+        // Loại bỏ tất cả ký tự không phải số
+        const numericValue = value.replace(/\D/g, '');
+        setFilters(prev => ({ ...prev, [name]: numericValue }));
+    };
+
+    const formatPriceDisplay = (value) => {
+        if (!value) return '';
+        return new Intl.NumberFormat('vi-VN').format(value);
     };
 
     const toggleAmenity = (amenity) => {
@@ -157,6 +175,8 @@ const RoomPostList = () => {
             (pos) => {
                 setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                 setLocationError('');
+                // Tự động xóa ô tìm kiếm khi lấy vị trí
+                setFilters(prev => ({ ...prev, search: '' }));
             },
             (err) => setLocationError('Vui lòng cấp quyền vị trí.')
         );
@@ -167,6 +187,12 @@ const RoomPostList = () => {
     };
 
     const handleBookAppointment = async (chuTroId, postId) => {
+        if (!isLoggedIn()) {
+            if (window.confirm("Bạn cần đăng nhập để đặt lịch xem phòng. Bạn có muốn chuyển đến trang đăng nhập không?")) {
+                navigate('/login');
+            }
+            return;
+        }
         navigate(`/room-posts/${postId}?scrollTo=appointment`);
     };
 
@@ -202,14 +228,14 @@ const RoomPostList = () => {
                         <div className="filter-section-title">Mức giá (VNĐ)</div>
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <input
-                                type="number" name="minPrice" placeholder="Từ..."
+                                type="text" name="minPrice" placeholder="Từ..."
                                 className="form-control"
-                                value={filters.minPrice} onChange={handleFilterChange}
+                                value={formatPriceDisplay(filters.minPrice)} onChange={handlePriceChange}
                             />
                             <input
-                                type="number" name="maxPrice" placeholder="Đến..."
+                                type="text" name="maxPrice" placeholder="Đến..."
                                 className="form-control"
-                                value={filters.maxPrice} onChange={handleFilterChange}
+                                value={formatPriceDisplay(filters.maxPrice)} onChange={handlePriceChange}
                             />
                         </div>
                     </div>
@@ -264,7 +290,8 @@ const RoomPostList = () => {
                         </button>
 
                         <div style={{ marginBottom: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                            Hoặc click vào bản đồ để thả ghim tùy ý:
+                            Hoặc click vào bản đồ để thả ghim tùy ý:<br />
+                            <i style={{ fontSize: '12px', color: '#dc3545' }}>* Lưu ý: Tìm vị trí sẽ làm trống ô nhập từ khóa</i>
                         </div>
 
                         <div style={{ height: '200px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginBottom: '12px', zIndex: 0 }}>
@@ -364,9 +391,13 @@ const RoomPostList = () => {
                                             <span>{post.diaChiChiTiet}</span>
                                         </div>
 
-                                        <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleBookAppointment(post.chuTroId, post.id)}>
-                                            Đặt lịch xem phòng
-                                        </button>
+                                        <div style={{ marginTop: '16px' }}>
+                                            {!isChuTro() && !isAdminOrModerator() && (
+                                                <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleBookAppointment(post.chuTroId, post.id)}>
+                                                    Đặt lịch xem phòng
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}

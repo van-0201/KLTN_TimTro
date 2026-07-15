@@ -30,8 +30,8 @@ const Sidebar = () => {
 
       <div className="sidebar-menu">
 
-        {/* ===== MENU DÀNH CHO CHỦ TRỌ VÀ NGƯỜI THUÊ ===== */}
-        {(isChuTro || isNguoiThue) && (
+        {/* ===== MENU CÔNG KHAI (KHÁCH & USER) ===== */}
+        {(!isAdminOrMod) && (
           <>
             <NavLink to="/" className={() => isHomeActive ? 'menu-item active' : 'menu-item'}>
               <FaHome /> Trang chủ
@@ -40,7 +40,12 @@ const Sidebar = () => {
             <NavLink to="/room-posts" className={() => isRoomPostListActive ? 'menu-item active' : 'menu-item'}>
               <FaSearch /> Tìm phòng trọ
             </NavLink>
+          </>
+        )}
 
+        {/* ===== MENU DÀNH CHO CHỦ TRỌ VÀ NGƯỜI THUÊ ===== */}
+        {(isChuTro || isNguoiThue) && (
+          <>
             <NavLink to="/my-posts" className={() => isMyPostsActive ? 'menu-item active' : 'menu-item'}>
               <FaList /> Bài đăng của tôi
             </NavLink>

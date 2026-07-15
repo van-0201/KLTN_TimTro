@@ -90,6 +90,9 @@ const MyRoomPosts = () => {
                         <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end' }}>
                             {getStatusBadge(post.trangThaiKiemDuyet)}
                             {getRoomStatusBadge(post.trangThaiPhong)}
+                            <span style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <FaEye /> {post.luotXem || 0} lượt xem
+                            </span>
                         </div>
 
                         <Link to={`/room-posts/${post.id}`} state={{ context: 'owner' }}>

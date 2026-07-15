@@ -22,6 +22,7 @@ namespace TimTro_Backend.Models
         public string TienIch { get; set; } = "[]";
         public DateTime NgayTao { get; set; } = DateTime.UtcNow;
         public DateTime? NgayCapNhat { get; set; }
+        public int LuotXem { get; set; } = 0;
 
         // Navigation properties
         public User ChuTro { get; set; }

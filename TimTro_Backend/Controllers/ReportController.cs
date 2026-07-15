@@ -28,6 +28,9 @@ namespace TimTro_Backend.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
+            if (User.IsInRole("ChuTro"))
+                return Forbid();
+
             await _reportService.CreateReportAsync(userId, request);
             return Ok(new { message = "Đã gửi báo cáo thành công." });
         }
