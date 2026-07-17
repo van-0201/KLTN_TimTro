@@ -55,7 +55,7 @@ const ChangePassword = () => {
     };
 
     return (
-        <div className="auth-container">
+        <div className="auth-container" style={{ minHeight: 'calc(100vh - 100px)', alignItems: 'flex-start', paddingTop: '40px' }}>
             <div className="auth-card">
                 <div className="auth-header">
                     <h1>Đổi mật khẩu</h1>
