@@ -236,6 +236,25 @@ namespace TimTro_Backend.Services.Admin
             await _context.SaveChangesAsync();
         }
 
+        public async Task<UserDto> GetSupportContactAsync()
+        {
+            var supportUser = await _context.Users
+                .Where(u => u.TrangThaiTaiKhoan == true && (u.VaiTro == "Moderator" || u.VaiTro == "Admin"))
+                .OrderByDescending(u => u.VaiTro == "Moderator") // Ưu tiên Moderator
+                .FirstOrDefaultAsync();
+
+            if (supportUser == null) return null;
+
+            return new UserDto
+            {
+                Id = supportUser.Id,
+                HoTen = supportUser.HoTen,
+                Email = supportUser.Email,
+                SoDienThoai = supportUser.SoDienThoai,
+                VaiTro = supportUser.VaiTro
+            };
+        }
+
         // ===========================
 
         private RoomPostResponse MapToResponse(TimTro_Backend.Models.RoomPost post)

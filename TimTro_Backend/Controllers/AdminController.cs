@@ -143,5 +143,27 @@ namespace TimTro_Backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Lấy thông tin liên hệ hỗ trợ (Moderator hoặc Admin)
+        /// </summary>
+        [HttpGet("support-contact")]
+        [Authorize]
+        public async Task<IActionResult> GetSupportContact()
+        {
+            try
+            {
+                var contact = await _adminService.GetSupportContactAsync();
+                if (contact == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy thông tin hỗ trợ viên." });
+                }
+                return Ok(contact);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

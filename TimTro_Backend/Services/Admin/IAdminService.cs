@@ -14,5 +14,7 @@ namespace TimTro_Backend.Services.Admin
         Task<bool> ToggleLockUserAsync(Guid userId);
         Task DeleteUserAsync(Guid userId);
         Task ResetUserPasswordAsync(Guid userId);
+        
+        Task<UserDto> GetSupportContactAsync();
     }
 }
