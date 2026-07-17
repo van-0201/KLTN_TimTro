@@ -32,8 +32,9 @@ Trước khi bắt đầu, máy tính của bạn cần cài đặt sẵn các p
    - Tạo một bản sao của file `appsettings.example.json` và đổi tên thành `appsettings.json`.
    - Mở file `appsettings.json` vừa tạo và điền các thông tin bảo mật của bạn:
      - **Database:** Chuỗi kết nối mặc định đã cấu hình sẵn cổng 3307 và mật khẩu để khớp với Docker Compose ở trên. Bạn không cần đổi nếu dùng Docker.
-     - **Cloudinary:** Thay thế các thông số `CloudName`, `ApiKey`, `ApiSecret` bằng thông tin lấy từ tài khoản Cloudinary của bạn (Dùng để upload ảnh).
+     - **Cloudinary:** Thay thế các thông số `CloudName`, `ApiKey`, `ApiSecret` bằng thông tin lấy từ tài khoản Cloudinary của bạn (Dùng để lưu trữ ảnh/minh chứng).
      - **JWT:** Thay thế đoạn `Key` bằng một chuỗi ngẫu nhiên, bí mật và đủ dài (ít nhất 16 ký tự).
+     - **EmailSettings:** Nhập địa chỉ Gmail của bạn vào `SenderEmail` và điền [Mật khẩu ứng dụng (App Password)](https://myaccount.google.com/apppasswords) vào `Password` để hệ thống tự động gửi email thông báo tới người dùng.
 
 3. Chạy lệnh cập nhật Database (Migrations):
    ```bash
