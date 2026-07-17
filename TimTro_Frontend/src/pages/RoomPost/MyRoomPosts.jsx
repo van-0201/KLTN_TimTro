@@ -9,6 +9,7 @@ const MyRoomPosts = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [isPackageExpired, setIsPackageExpired] = useState(false);
     const pageSize = 10;
 
     useEffect(() => {
@@ -19,6 +20,7 @@ const MyRoomPosts = () => {
                 });
                 setPosts(res.data.items || []);
                 setTotalPages(res.data.totalPages || 1);
+                setIsPackageExpired(res.data.isPackageExpired || false);
             } catch (error) {
                 console.error('Error fetching my posts', error);
             } finally {
@@ -81,6 +83,19 @@ const MyRoomPosts = () => {
                     <FaPlus /> Thêm bài mới
                 </Link>
             </div>
+
+            {isPackageExpired && (
+                <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid #f87171', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                        <strong style={{ display: 'block', marginBottom: '4px' }}>⚠️ Gói dịch vụ đã hết hạn!</strong>
+                        Các bài đăng của bạn hiện đang bị ẩn khỏi hệ thống và bạn không thể đăng bài/chỉnh sửa bài đăng. Vui lòng gia hạn để tiếp tục sử dụng dịch vụ.
+                    </div>
+                    <Link to="/packages" className="btn-primary" style={{ backgroundColor: '#ef4444', textDecoration: 'none', flexShrink: 0, marginLeft: '16px' }}>
+                        Gia hạn ngay
+                    </Link>
+                </div>
+            )}
+
             <div className="room-grid">
                 {posts.map(post => (
                     <div key={post.id} className={`room-card ${post.isHidden ? 'hidden-post' : ''}`} style={{ position: 'relative' }}>

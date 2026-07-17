@@ -29,7 +29,10 @@ namespace TimTro_Backend.Services.RoomPost
             var query = _context.RoomPosts
                 .Include(rp => rp.ChuTro)
                 .Include(rp => rp.RoomImages)
-                .Where(rp => rp.TrangThaiPhong == "ConTrong" && rp.TrangThaiKiemDuyet == "DaDuyet" && !rp.IsHidden)
+                .Where(rp => rp.TrangThaiPhong == "ConTrong" 
+                          && rp.TrangThaiKiemDuyet == "DaDuyet" 
+                          && !rp.IsHidden
+                          && (rp.ChuTro.VaiTro == "NguoiThue" || (rp.ChuTro.NgayHetHanDichVu != null && rp.ChuTro.NgayHetHanDichVu > DateTime.UtcNow)))
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchKeyword))
@@ -131,7 +134,10 @@ namespace TimTro_Backend.Services.RoomPost
             var query = _context.RoomPosts
                 .Include(rp => rp.ChuTro)
                 .Include(rp => rp.RoomImages)
-                .Where(rp => rp.TrangThaiPhong == "ConTrong" && rp.TrangThaiKiemDuyet == "DaDuyet" && !rp.IsHidden)
+                .Where(rp => rp.TrangThaiPhong == "ConTrong" 
+                          && rp.TrangThaiKiemDuyet == "DaDuyet" 
+                          && !rp.IsHidden
+                          && (rp.ChuTro.VaiTro == "NguoiThue" || (rp.ChuTro.NgayHetHanDichVu != null && rp.ChuTro.NgayHetHanDichVu > DateTime.UtcNow)))
                 .OrderByDescending(rp => rp.Id);
 
             var totalRecords = await query.CountAsync();
@@ -271,6 +277,13 @@ namespace TimTro_Backend.Services.RoomPost
                 .FirstOrDefaultAsync(rp => rp.Id == id && rp.ChuTroId == userId);
 
             if (post == null) return null;
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null && user.VaiTro == "ChuTro")
+            {
+                if (!user.NgayHetHanDichVu.HasValue || user.NgayHetHanDichVu.Value < DateTime.UtcNow)
+                    throw new Exception("Gói dịch vụ của bạn đã hết hạn. Vui lòng gia hạn để tiếp tục chỉnh sửa bài đăng.");
+            }
 
             bool contentChanged = 
                 post.TieuDe != request.TieuDe ||

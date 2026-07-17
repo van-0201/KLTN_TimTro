@@ -13,10 +13,12 @@ namespace TimTro_Backend.Controllers
     public class RoomPostController : ControllerBase
     {
         private readonly IRoomPostService _roomPostService;
+        private readonly TimTro_Backend.Data.ApplicationDbContext _context;
 
-        public RoomPostController(IRoomPostService roomPostService)
+        public RoomPostController(IRoomPostService roomPostService, TimTro_Backend.Data.ApplicationDbContext context)
         {
             _roomPostService = roomPostService;
+            _context = context;
         }
 
         [HttpGet]
@@ -58,7 +60,16 @@ namespace TimTro_Backend.Controllers
                 return Unauthorized();
 
             var posts = await _roomPostService.GetMyPostsAsync(userId, page, pageSize);
-            return Ok(posts);
+
+            var user = await _context.Users.FindAsync(userId);
+            bool isPackageExpired = user != null && user.VaiTro == "ChuTro" && 
+                                    (user.NgayHetHanDichVu == null || user.NgayHetHanDichVu < DateTime.UtcNow);
+
+            return Ok(new {
+                items = posts.Items,
+                totalPages = posts.TotalPages,
+                isPackageExpired = isPackageExpired
+            });
         }
 
 

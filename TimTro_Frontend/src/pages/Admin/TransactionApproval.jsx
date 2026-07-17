@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaImage } from 'react-icons/fa';
 import Pagination from '../../components/Common/Pagination';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -10,6 +10,7 @@ const TransactionApproval = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [selectedImage, setSelectedImage] = useState(null);
     const pageSize = 10;
 
     useEffect(() => {
@@ -86,7 +87,12 @@ const TransactionApproval = () => {
                                     <td style={{padding: '12px', color: 'var(--primary)', fontWeight: 'bold'}}>{tx.loaiGoi}</td>
                                     <td style={{padding: '12px', color: '#ef4444', fontWeight: 'bold'}}>{formatCurrency(tx.soTien)}</td>
                                     <td style={{padding: '12px'}}>
-                                        <div style={{display: 'flex', gap: '8px'}}>
+                                        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                            {tx.minhChung && (
+                                                <button onClick={() => setSelectedImage(tx.minhChung)} style={{background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}} title="Xem minh chứng">
+                                                    <FaImage /> Xem minh chứng
+                                                </button>
+                                            )}
                                             <button onClick={() => handleApprove(tx.id, true)} style={{background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}}>
                                                 <FaCheck /> Duyệt
                                             </button>
@@ -108,6 +114,18 @@ const TransactionApproval = () => {
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
                 />
+            )}
+
+            {/* Modal hiển thị ảnh minh chứng */}
+            {selectedImage && (
+                <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000}} onClick={() => setSelectedImage(null)}>
+                    <div style={{position: 'relative', maxWidth: '90%', maxHeight: '90%'}} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setSelectedImage(null)} style={{position: 'absolute', top: '-40px', right: 0, background: 'none', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer'}}>
+                            &times; Đóng
+                        </button>
+                        <img src={selectedImage} alt="Minh chứng" style={{maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px'}} />
+                    </div>
+                </div>
             )}
         </div>
     );

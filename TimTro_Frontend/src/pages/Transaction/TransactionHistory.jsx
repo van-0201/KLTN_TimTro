@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaImage } from 'react-icons/fa';
 import api from '../../services/api';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -13,6 +13,7 @@ const TransactionHistory = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const fetchHistory = async (currentPage = 1, searchQuery = search) => {
         setLoading(true);
@@ -122,6 +123,7 @@ const TransactionHistory = () => {
                                     <th style={{padding: '12px'}}>Ngày duyệt</th>
                                     <th style={{padding: '12px'}}>Gói dịch vụ</th>
                                     <th style={{padding: '12px'}}>Số tiền</th>
+                                    <th style={{padding: '12px', textAlign: 'center'}}>Minh chứng</th>
                                     {(user?.role === 'Admin' || user?.role === 'Moderator') && (
                                         <th style={{padding: '12px'}}>Người duyệt</th>
                                     )}
@@ -136,6 +138,13 @@ const TransactionHistory = () => {
                                         <td style={{padding: '12px'}}>{formatDate(tx.ngayDuyet)}</td>
                                         <td style={{padding: '12px', fontWeight: 'bold'}}>{tx.loaiGoi || '—'}</td>
                                         <td style={{padding: '12px', color: 'var(--primary)', fontWeight: 'bold'}}>{formatCurrency(tx.soTien)}</td>
+                                        <td style={{padding: '12px', textAlign: 'center'}}>
+                                            {tx.minhChung ? (
+                                                <button onClick={() => setSelectedImage(tx.minhChung)} style={{background: 'transparent', color: '#3b82f6', border: 'none', cursor: 'pointer', fontSize: '18px'}} title="Xem minh chứng">
+                                                    <FaImage />
+                                                </button>
+                                            ) : '—'}
+                                        </td>
                                         {(user?.role === 'Admin' || user?.role === 'Moderator') && (
                                             <td style={{padding: '12px'}}>{tx.nguoiDuyetTen || '—'}</td>
                                         )}
@@ -158,6 +167,18 @@ const TransactionHistory = () => {
                         />
                     )}
                 </>
+            )}
+
+            {/* Modal hiển thị ảnh minh chứng */}
+            {selectedImage && (
+                <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000}} onClick={() => setSelectedImage(null)}>
+                    <div style={{position: 'relative', maxWidth: '90%', maxHeight: '90%'}} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setSelectedImage(null)} style={{position: 'absolute', top: '-40px', right: 0, background: 'none', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer'}}>
+                            &times; Đóng
+                        </button>
+                        <img src={selectedImage} alt="Minh chứng" style={{maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px'}} />
+                    </div>
+                </div>
             )}
         </div>
     );

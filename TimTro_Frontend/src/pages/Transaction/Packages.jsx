@@ -15,6 +15,8 @@ const Packages = () => {
     const [loading, setLoading] = useState(false);
     const [qrCode, setQrCode] = useState(null);
     const [confirming, setConfirming] = useState(false);
+    const [minhChungFile, setMinhChungFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -34,20 +36,48 @@ const Packages = () => {
         }
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setMinhChungFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        } else {
+            setMinhChungFile(null);
+            setPreviewUrl(null);
+        }
+    };
+
     const handleConfirmPaid = async () => {
         if (!selectedPackage) return;
         setConfirming(true);
         try {
-            await api.post('/Transaction', {
-                loaiGoi: selectedPackage.id,
-                soTien: selectedPackage.price,
-                noiDungChuyenKhoan: `Thanh toan ${selectedPackage.name}`,
-                maQR: ''
+            const formData = new FormData();
+            formData.append('loaiGoi', selectedPackage.id);
+            formData.append('soTien', selectedPackage.price);
+            formData.append('noiDungChuyenKhoan', `Thanh toan ${selectedPackage.name}`);
+            formData.append('maQR', '');
+            if (minhChungFile) {
+                formData.append('minhChungFile', minhChungFile);
+            }
+
+            await api.post('/Transaction', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
             alert('Đã gửi yêu cầu thanh toán thành công! Vui lòng chờ Admin duyệt.');
             navigate('/');
         } catch (error) {
-            const errorMsg = error.response?.data?.message || error.response?.data || error.message;
+            let errorMsg = error.message;
+            if (error.response?.data) {
+                if (typeof error.response.data === 'string') {
+                    errorMsg = error.response.data;
+                } else if (error.response.data.message) {
+                    errorMsg = error.response.data.message;
+                } else if (error.response.data.errors) {
+                    errorMsg = Object.values(error.response.data.errors).flat().join(', ');
+                } else {
+                    errorMsg = JSON.stringify(error.response.data);
+                }
+            }
             alert('Lỗi gửi yêu cầu thanh toán: ' + errorMsg);
         } finally {
             setConfirming(false);
@@ -104,8 +134,25 @@ const Packages = () => {
                         </div>
                     )}
 
+                    <div style={{textAlign: 'left', marginBottom: '20px'}}>
+                        <label className="form-label" style={{display: 'block', marginBottom: '8px', fontWeight: 'bold'}}>Tải lên ảnh minh chứng chuyển khoản</label>
+                        <input type="file" accept="image/*" onChange={handleImageChange} className="form-control" style={{padding: '8px', marginBottom: '10px'}} />
+                        {previewUrl && (
+                            <div style={{marginBottom: '10px', textAlign: 'center'}}>
+                                <img src={previewUrl} alt="Preview" style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--border-color)'}} />
+                            </div>
+                        )}
+                        <p style={{color: '#ef4444', fontSize: '13px', fontStyle: 'italic', margin: 0}}>
+                            *Lưu ý: Nếu quý khách không tải lên ảnh minh chứng, quý khách sẽ phải tự chịu trách nhiệm trong trường hợp thất lạc giao dịch.
+                        </p>
+                    </div>
+
                     <div style={{display: 'flex', gap: '15px', justifyContent: 'center'}}>
-                        <button className="btn-primary" style={{background: '#6c757d'}} onClick={() => setSelectedPackage(null)} disabled={confirming}>Hủy bỏ</button>
+                        <button className="btn-primary" style={{background: '#6c757d'}} onClick={() => {
+                            setSelectedPackage(null);
+                            setMinhChungFile(null);
+                            setPreviewUrl(null);
+                        }} disabled={confirming}>Hủy bỏ</button>
                         <button className="btn-primary" onClick={handleConfirmPaid} disabled={confirming}>
                             {confirming ? 'Đang xử lý...' : 'Tôi đã chuyển khoản'}
                         </button>

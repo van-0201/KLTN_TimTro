@@ -12,6 +12,7 @@ namespace TimTro_Backend.Models
         public string MaQR { get; set; }
         public string TrangThai { get; set; } = "ChoDuyet"; // ChoDuyet / ThanhCong / TuChoi / DaHuy
         public Guid? NguoiDuyetId { get; set; }
+        public string? MinhChung { get; set; }
         public DateTime NgayTao { get; set; } = DateTime.UtcNow;
         public DateTime? NgayDuyet { get; set; }
 

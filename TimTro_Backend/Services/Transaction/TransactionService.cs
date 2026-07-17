@@ -7,6 +7,7 @@ using TimTro_Backend.Data;
 using TimTro_Backend.DTOs;
 using TimTro_Backend.Services.Notification;
 using TimTro_Backend.Services.Email;
+using TimTro_Backend.Services.Cloudinary;
 
 namespace TimTro_Backend.Services.Transaction
 {
@@ -15,12 +16,14 @@ namespace TimTro_Backend.Services.Transaction
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public TransactionService(ApplicationDbContext context, INotificationService notificationService, IEmailService emailService)
+        public TransactionService(ApplicationDbContext context, INotificationService notificationService, IEmailService emailService, ICloudinaryService cloudinaryService)
         {
             _context = context;
             _notificationService = notificationService;
             _emailService = emailService;
+            _cloudinaryService = cloudinaryService;
         }
 
         private TransactionResponse MapToResponse(TimTro_Backend.Models.Transaction tx)
@@ -39,7 +42,8 @@ namespace TimTro_Backend.Services.Transaction
                 TrangThai = tx.TrangThai,
                 NgayTao = tx.NgayTao,
                 NgayDuyet = tx.NgayDuyet,
-                NguoiDuyetTen = tx.NguoiDuyet?.HoTen
+                NguoiDuyetTen = tx.NguoiDuyet?.HoTen,
+                MinhChung = tx.MinhChung
             };
         }
 
@@ -52,13 +56,21 @@ namespace TimTro_Backend.Services.Transaction
             {
                 throw new InvalidOperationException("Bạn đang có một giao dịch nạp tiền chờ xử lý. Vui lòng chờ Admin duyệt trước khi tạo yêu cầu mới.");
             }
+            string? minhChungUrl = null;
+            if (request.MinhChungFile != null && request.MinhChungFile.Length > 0)
+            {
+                var uploadResult = await _cloudinaryService.UploadImageAsync(request.MinhChungFile);
+                minhChungUrl = uploadResult.Url;
+            }
+
             var tx = new TimTro_Backend.Models.Transaction
             {
                 NguoiDungId = userId,
-                LoaiGoi = request.LoaiGoi,
+                LoaiGoi = request.LoaiGoi ?? "",
                 SoTien = request.SoTien,
-                NoiDungChuyenKhoan = request.NoiDungChuyenKhoan,
-                MaQR = request.MaQR,
+                NoiDungChuyenKhoan = request.NoiDungChuyenKhoan ?? "",
+                MaQR = request.MaQR ?? "",
+                MinhChung = minhChungUrl,
                 TrangThai = "ChoDuyet",
                 NgayTao = DateTime.UtcNow
             };
