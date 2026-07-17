@@ -5,8 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using TimTro_Backend.Data;
 using TimTro_Backend.DTOs;
-
+using TimTro_Backend.Models;
 using TimTro_Backend.Services.Notification;
+using TimTro_Backend.Services.Email;
 
 namespace TimTro_Backend.Services.Admin
 {
@@ -14,11 +15,13 @@ namespace TimTro_Backend.Services.Admin
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public AdminService(ApplicationDbContext context, INotificationService notificationService)
+        public AdminService(ApplicationDbContext context, INotificationService notificationService, IEmailService emailService)
         {
             _context = context;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         public async Task<PagedResult<RoomPostResponse>> GetPendingPostsAsync(int page = 1, int pageSize = 10)
@@ -43,7 +46,7 @@ namespace TimTro_Backend.Services.Admin
 
         public async Task<bool> ApprovePostAsync(Guid postId, Guid moderatorId)
         {
-            var post = await _context.RoomPosts.FindAsync(postId);
+            var post = await _context.RoomPosts.Include(rp => rp.ChuTro).FirstOrDefaultAsync(rp => rp.Id == postId);
             if (post == null) return false;
 
             // Guard: chỉ cho duyệt khi bài đang ở trạng thái chờ duyệt
@@ -55,13 +58,32 @@ namespace TimTro_Backend.Services.Admin
 
             // Notify user
             await _notificationService.CreateNotificationAsync(post.ChuTroId, $"Bài đăng '{post.TieuDe}' của bạn đã được kiểm duyệt và hiện thị.");
+            
+            // Email user
+            if (!string.IsNullOrEmpty(post.ChuTro?.Email))
+            {
+                string emailBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                    <div style='background-color: #10b981; color: white; padding: 15px; text-align: center;'>
+                        <h2 style='margin: 0;'>Bài đăng được duyệt</h2>
+                    </div>
+                    <div style='padding: 20px; color: #333;'>
+                        <p>Chào bạn,</p>
+                        <p>Bài đăng <b>{post.TieuDe}</b> của bạn đã được Quản trị viên duyệt thành công và hiện đang hiển thị công khai trên hệ thống.</p>
+                        <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!</p>
+                        <br/>
+                        <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                    </div>
+                </div>";
+                await _emailService.SendEmailAsync(post.ChuTro.Email, "Bài đăng được duyệt - Phongtro.vn", emailBody);
+            }
 
             return true;
         }
 
         public async Task<bool> RejectPostAsync(Guid postId, Guid moderatorId)
         {
-            var post = await _context.RoomPosts.FindAsync(postId);
+            var post = await _context.RoomPosts.Include(rp => rp.ChuTro).FirstOrDefaultAsync(rp => rp.Id == postId);
             if (post == null) return false;
 
             // Guard: chỉ cho từ chối khi bài đang ở trạng thái chờ duyệt
@@ -73,6 +95,25 @@ namespace TimTro_Backend.Services.Admin
 
             // Notify user
             await _notificationService.CreateNotificationAsync(post.ChuTroId, $"Bài đăng '{post.TieuDe}' của bạn đã bị từ chối kiểm duyệt. Vui lòng kiểm tra lại nội dung.");
+            
+            // Email user
+            if (!string.IsNullOrEmpty(post.ChuTro?.Email))
+            {
+                string emailBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                    <div style='background-color: #ef4444; color: white; padding: 15px; text-align: center;'>
+                        <h2 style='margin: 0;'>Bài đăng bị từ chối</h2>
+                    </div>
+                    <div style='padding: 20px; color: #333;'>
+                        <p>Chào bạn,</p>
+                        <p>Rất tiếc, bài đăng <b>{post.TieuDe}</b> của bạn không đạt yêu cầu kiểm duyệt của hệ thống.</p>
+                        <p>Vui lòng đăng nhập vào tài khoản, kiểm tra lại thông tin, hình ảnh và chỉnh sửa cho phù hợp với quy định trước khi gửi lại yêu cầu.</p>
+                        <br/>
+                        <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                    </div>
+                </div>";
+                await _emailService.SendEmailAsync(post.ChuTro.Email, "Bài đăng bị từ chối - Phongtro.vn", emailBody);
+            }
 
             return true;
         }

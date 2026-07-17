@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TimTro_Backend.Data;
 using TimTro_Backend.DTOs;
 using TimTro_Backend.Services.Notification;
+using TimTro_Backend.Services.Email;
 
 namespace TimTro_Backend.Services.Transaction
 {
@@ -13,11 +14,13 @@ namespace TimTro_Backend.Services.Transaction
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public TransactionService(ApplicationDbContext context, INotificationService notificationService)
+        public TransactionService(ApplicationDbContext context, INotificationService notificationService, IEmailService emailService)
         {
             _context = context;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         private TransactionResponse MapToResponse(TimTro_Backend.Models.Transaction tx)
@@ -159,6 +162,25 @@ namespace TimTro_Backend.Services.Transaction
                                   
                 await _notificationService.CreateNotificationAsync(tx.NguoiDungId,
                     $"Thành công! Giao dịch mua \"{packageName}\" của bạn đã được duyệt. Tài khoản được cộng thêm {daysToAdd} ngày sử dụng.");
+
+                if (user != null && !string.IsNullOrEmpty(user.Email))
+                {
+                    string emailBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                        <div style='background-color: #10b981; color: white; padding: 15px; text-align: center;'>
+                            <h2 style='margin: 0;'>Thanh toán thành công</h2>
+                        </div>
+                        <div style='padding: 20px; color: #333;'>
+                            <p>Chào bạn,</p>
+                            <p>Giao dịch mua <b>{packageName}</b> của bạn đã được hệ thống ghi nhận và duyệt thành công.</p>
+                            <p>Tài khoản của bạn đã được cộng thêm <b>{daysToAdd} ngày</b> sử dụng dịch vụ không giới hạn.</p>
+                            <p>Cảm ơn bạn đã tin tưởng và đồng hành cùng hệ thống!</p>
+                            <br/>
+                            <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                        </div>
+                    </div>";
+                    await _emailService.SendEmailAsync(user.Email, "Giao dịch thành công - Phongtro.vn", emailBody);
+                }
             }
             else if (request.TrangThai == "TuChoi")
             {
@@ -168,6 +190,24 @@ namespace TimTro_Backend.Services.Transaction
 
                 await _notificationService.CreateNotificationAsync(tx.NguoiDungId,
                     $"Từ chối: Giao dịch mua \"{packageName}\" của bạn bị từ chối do không nhận được tiền hoặc lỗi. Vui lòng liên hệ Admin.");
+
+                if (tx.NguoiDung != null && !string.IsNullOrEmpty(tx.NguoiDung.Email))
+                {
+                    string emailBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                        <div style='background-color: #ef4444; color: white; padding: 15px; text-align: center;'>
+                            <h2 style='margin: 0;'>Giao dịch không thành công</h2>
+                        </div>
+                        <div style='padding: 20px; color: #333;'>
+                            <p>Chào bạn,</p>
+                            <p>Yêu cầu nạp tiền mua <b>{packageName}</b> của bạn hiện tại <b>không được duyệt</b>.</p>
+                            <p>Nguyên nhân có thể do chúng tôi chưa nhận được tiền trong hệ thống hoặc nội dung chuyển khoản không chính xác. Xin vui lòng kiểm tra lại hoặc liên hệ với Ban quản trị để được giải quyết nhanh nhất.</p>
+                            <br/>
+                            <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                        </div>
+                    </div>";
+                    await _emailService.SendEmailAsync(tx.NguoiDung.Email, "Giao dịch bị từ chối - Phongtro.vn", emailBody);
+                }
             }
 
             await _context.SaveChangesAsync();

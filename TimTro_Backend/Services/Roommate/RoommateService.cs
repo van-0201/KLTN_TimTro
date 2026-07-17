@@ -8,7 +8,9 @@ using TimTro_Backend.Data;
 using TimTro_Backend.DTOs;
 using TimTro_Backend.Models;
 
+using TimTro_Backend.Models;
 using TimTro_Backend.Services.Notification;
+using TimTro_Backend.Services.Email;
 
 namespace TimTro_Backend.Services.Roommate
 {
@@ -16,11 +18,13 @@ namespace TimTro_Backend.Services.Roommate
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public RoommateService(ApplicationDbContext context, INotificationService notificationService)
+        public RoommateService(ApplicationDbContext context, INotificationService notificationService, IEmailService emailService)
         {
             _context = context;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         public async Task<RoommateProfileResponse?> GetMyProfileAsync(Guid userId)
@@ -240,6 +244,25 @@ namespace TimTro_Backend.Services.Roommate
                 $"Bạn vừa nhận được một yêu cầu ghép phòng từ {requestWithUsers.NguoiGui.HoTen}."
             );
 
+            // Gửi Email
+            if (!string.IsNullOrEmpty(requestWithUsers.NguoiNhan?.Email))
+            {
+                string emailBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                    <div style='background-color: #f59e0b; color: white; padding: 15px; text-align: center;'>
+                        <h2 style='margin: 0;'>Yêu cầu ghép phòng mới</h2>
+                    </div>
+                    <div style='padding: 20px; color: #333;'>
+                        <p>Chào bạn,</p>
+                        <p>Bạn vừa nhận được một lời mời ghép phòng từ người dùng <b>{requestWithUsers.NguoiGui.HoTen}</b>.</p>
+                        <p>Vui lòng đăng nhập vào ứng dụng để xem chi tiết hồ sơ của đối tác và đưa ra phản hồi (Đồng ý / Từ chối).</p>
+                        <br/>
+                        <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                    </div>
+                </div>";
+                await _emailService.SendEmailAsync(requestWithUsers.NguoiNhan.Email, "Yêu cầu ghép phòng mới - Phongtro.vn", emailBody);
+            }
+
             return MapToMatchResponse(requestWithUsers, senderId);
         }
 
@@ -299,6 +322,8 @@ namespace TimTro_Backend.Services.Roommate
 
             // Gửi thông báo cho người gửi (người khởi tạo request)
             var receiver = await _context.Users.FindAsync(receiverId);
+            var sender = await _context.Users.FindAsync(request.NguoiGuiId);
+            
             string actionStr = status == "DaDongY" ? "chấp nhận" : "từ chối";
             if (receiver != null)
             {
@@ -306,6 +331,24 @@ namespace TimTro_Backend.Services.Roommate
                     request.NguoiGuiId,
                     $"{receiver.HoTen} đã {actionStr} yêu cầu ghép phòng của bạn."
                 );
+
+                if (status == "DaDongY" && sender != null && !string.IsNullOrEmpty(sender.Email))
+                {
+                    string emailBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                        <div style='background-color: #10b981; color: white; padding: 15px; text-align: center;'>
+                            <h2 style='margin: 0;'>Ghép phòng thành công!</h2>
+                        </div>
+                        <div style='padding: 20px; color: #333;'>
+                            <p>Chúc mừng bạn!</p>
+                            <p>Yêu cầu ghép phòng của bạn đã được <b>{receiver.HoTen}</b> chấp nhận.</p>
+                            <p>Hãy chủ động liên hệ với đối tác qua số điện thoại: <b>{receiver.SoDienThoai}</b> để cùng nhau trao đổi chi tiết và tìm thuê căn phòng ưng ý nhé.</p>
+                            <br/>
+                            <p style='color: #666; font-size: 14px;'>Trân trọng,<br/>Đội ngũ Phongtro.vn</p>
+                        </div>
+                    </div>";
+                    await _emailService.SendEmailAsync(sender.Email, "Ghép phòng thành công - Phongtro.vn", emailBody);
+                }
             }
 
             return true;

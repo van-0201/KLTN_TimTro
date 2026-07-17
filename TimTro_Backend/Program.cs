@@ -10,7 +10,9 @@ using TimTro_Backend.Services.Transaction;
 using TimTro_Backend.Services.Notification;
 using TimTro_Backend.Services.Notification;
 using TimTro_Backend.Services.Report;
+using TimTro_Backend.Services.Email;
 using System.Globalization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 // Bắt buộc dùng InvariantCulture cho toàn bộ ứng dụng để tránh lỗi parse số thập phân ở các API (ví dụ Vĩ độ, Kinh độ bị parse thành chục triệu tỷ).
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -32,8 +34,9 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters

@@ -24,29 +24,34 @@ const Packages = () => {
         setSelectedPackage(pkg);
         setLoading(true);
         try {
-            const res = await api.post('/Transaction', {
-                loaiGoi: pkg.id,
-                soTien: pkg.price,
-                noiDungChuyenKhoan: `Thanh toan ${pkg.name}`,
-                maQR: ''
-            });
             const message = `Thanh toan goi ${pkg.name.replace('Gói ', '')} gia ${pkg.price}vnd`;
             setQrCode(`https://img.vietqr.io/image/970418-5150651853-compact2.png?amount=${pkg.price}&addInfo=${encodeURIComponent(message)}&accountName=DAU%20HUY%20VAN`);
         } catch (error) {
-            const errorMsg = error.response?.data?.message || error.response?.data || error.message;
-            alert('Lỗi tạo thanh toán: ' + errorMsg);
+            alert('Lỗi tạo QR thanh toán: ' + error.message);
             setSelectedPackage(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleConfirmPaid = () => {
+    const handleConfirmPaid = async () => {
+        if (!selectedPackage) return;
         setConfirming(true);
-        setTimeout(() => {
-            alert('Đã xác nhận thanh toán! Vui lòng chờ Admin duyệt.');
+        try {
+            await api.post('/Transaction', {
+                loaiGoi: selectedPackage.id,
+                soTien: selectedPackage.price,
+                noiDungChuyenKhoan: `Thanh toan ${selectedPackage.name}`,
+                maQR: ''
+            });
+            alert('Đã gửi yêu cầu thanh toán thành công! Vui lòng chờ Admin duyệt.');
             navigate('/');
-        }, 500);
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.response?.data || error.message;
+            alert('Lỗi gửi yêu cầu thanh toán: ' + errorMsg);
+        } finally {
+            setConfirming(false);
+        }
     };
 
     return (
