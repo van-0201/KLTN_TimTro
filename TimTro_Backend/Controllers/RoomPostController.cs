@@ -132,9 +132,16 @@ namespace TimTro_Backend.Controllers
             if (role == "ChuTro" && request.LoaiBaiDang == "TimNguoiOGhep")
                 return StatusCode(403, "Chủ trọ không được đăng bài tìm người ở ghép.");
 
-            var post = await _roomPostService.UpdateAsync(id, userId, request);
-            if (post == null) return NotFound("Bài đăng không tồn tại hoặc bạn không có quyền sửa.");
-            return Ok(post);
+            try
+            {
+                var post = await _roomPostService.UpdateAsync(id, userId, request);
+                if (post == null) return NotFound("Bài đăng không tồn tại hoặc bạn không có quyền sửa.");
+                return Ok(post);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]

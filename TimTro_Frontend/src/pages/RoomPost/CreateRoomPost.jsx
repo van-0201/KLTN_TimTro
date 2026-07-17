@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getAuthUser } from '../../utils/auth';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -212,7 +212,19 @@ const CreateRoomPost = () => {
             </div>
 
             <div className="form-card">
-                {error && <div className="alert-error" style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#ef444420', color: '#ef4444', borderRadius: '6px' }}>{error}</div>}
+                {error && (
+                    <div className="alert-error" style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', border: '1px solid #f87171', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                            <strong style={{ display: 'block', marginBottom: '4px' }}>⚠️ Thất bại</strong>
+                            {typeof error === 'string' ? error : 'Có lỗi xảy ra. Vui lòng thử lại.'}
+                        </div>
+                        {typeof error === 'string' && error.includes('hết hạn') && (
+                            <Link to="/packages" className="btn-primary" style={{ backgroundColor: '#ef4444', textDecoration: 'none', flexShrink: 0, marginLeft: '16px' }}>
+                                Gia hạn ngay
+                            </Link>
+                        )}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="create-post-layout">
