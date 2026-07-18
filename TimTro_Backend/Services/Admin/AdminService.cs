@@ -118,7 +118,7 @@ namespace TimTro_Backend.Services.Admin
             return true;
         }
 
-        public async Task<AdminStatisticsResponse> GetStatisticsAsync(int? month = null, int? year = null)
+        public async Task<AdminStatisticsResponse> GetStatisticsAsync(int? month = null, int? year = null, string? loaiBaiDang = null, string? vaiTro = null)
         {
             var now = DateTime.UtcNow;
             int targetYear = year ?? now.Year;
@@ -127,25 +127,39 @@ namespace TimTro_Backend.Services.Admin
             var startOfMonth = new DateTime(targetYear, targetMonth, 1);
             var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
 
-            int totalUsers = await _context.Users.CountAsync();
-            int newUsersThisMonth = await _context.Users.CountAsync(u => u.NgayTao >= startOfMonth && u.NgayTao <= endOfMonth);
-            int totalPosts = await _context.RoomPosts.CountAsync();
-            int pendingPosts = await _context.RoomPosts.CountAsync(rp => rp.TrangThaiKiemDuyet == "ChoDuyet");
+            var userQuery = _context.Users.Where(u => u.VaiTro == "NguoiThue" || u.VaiTro == "ChuTro").AsQueryable();
+            if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "TatCa")
+            {
+                userQuery = userQuery.Where(u => u.VaiTro == vaiTro);
+            }
+
+            var postQuery = _context.RoomPosts.AsQueryable();
+            if (!string.IsNullOrEmpty(loaiBaiDang) && loaiBaiDang != "TatCa")
+            {
+                postQuery = postQuery.Where(rp => rp.LoaiBaiDang == loaiBaiDang);
+            }
+
+            int totalUsers = await userQuery.CountAsync();
+            int newUsersThisMonth = await userQuery.CountAsync(u => u.NgayTao >= startOfMonth && u.NgayTao <= endOfMonth);
+            int totalPosts = await postQuery.CountAsync();
+            int pendingPosts = await postQuery.CountAsync(rp => rp.TrangThaiKiemDuyet == "ChoDuyet");
+            int newApprovedPostsThisMonth = await postQuery.CountAsync(rp => rp.TrangThaiKiemDuyet == "DaDuyet" && rp.NgayTao >= startOfMonth && rp.NgayTao <= endOfMonth);
             int pendingReports = await _context.Reports.CountAsync(r => r.TrangThaiXuLy == "ChoXuLy");
             
             decimal revenueThisMonth = await _context.Transactions
                 .Where(t => t.TrangThai == "ThanhCong" && t.NgayDuyet != null && t.NgayDuyet >= startOfMonth && t.NgayDuyet <= endOfMonth)
                 .SumAsync(t => (decimal?)t.SoTien) ?? 0;
 
-            int nguoiThueCount = await _context.Users.CountAsync(u => u.VaiTro == "NguoiThue");
-            int chuTroCount = await _context.Users.CountAsync(u => u.VaiTro == "ChuTro");
-            int moderatorCount = await _context.Users.CountAsync(u => u.VaiTro == "Moderator" || u.VaiTro == "Admin");
+            int nguoiThueCount = await userQuery.CountAsync(u => u.VaiTro == "NguoiThue");
+            int chuTroCount = await userQuery.CountAsync(u => u.VaiTro == "ChuTro");
+            int moderatorCount = await userQuery.CountAsync(u => u.VaiTro == "Moderator" || u.VaiTro == "Admin");
 
             return new AdminStatisticsResponse
             {
                 TongNguoiDung = totalUsers,
                 NguoiDungMoiThangNay = newUsersThisMonth,
                 TongBaiDang = totalPosts,
+                BaiDangMoiThangNay = newApprovedPostsThisMonth,
                 BaiDangChoDuyet = pendingPosts,
                 TongBaoCaoChoXuLy = pendingReports,
                 DoanhThuThangNay = revenueThisMonth,
@@ -153,6 +167,104 @@ namespace TimTro_Backend.Services.Admin
                 ChuTroCount = chuTroCount,
                 ModeratorCount = moderatorCount
             };
+        }
+
+        public async Task<List<ChartDataResponse>> GetChartStatisticsAsync(int months = 6, string? loaiBaiDang = null, string? vaiTro = null, int? year = null)
+        {
+            var results = new List<ChartDataResponse>();
+            var now = DateTime.UtcNow;
+
+            if (year.HasValue)
+            {
+                for (int i = 1; i <= 12; i++)
+                {
+                    if (year.Value > now.Year || (year.Value == now.Year && i > now.Month))
+                    {
+                        results.Add(new ChartDataResponse
+                        {
+                            Thang = $"T{i}",
+                            DoanhThu = null,
+                            NguoiDungMoi = null,
+                            BaiDangMoi = null
+                        });
+                        continue;
+                    }
+
+                    var startOfMonth = new DateTime(year.Value, i, 1);
+                    var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+
+                    var userQuery = _context.Users.Where(u => u.VaiTro == "NguoiThue" || u.VaiTro == "ChuTro").AsQueryable();
+                    if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "TatCa")
+                        userQuery = userQuery.Where(u => u.VaiTro == vaiTro);
+
+                    var postQuery = _context.RoomPosts.AsQueryable();
+                    if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "TatCa")
+                        postQuery = postQuery.Where(rp => rp.ChuTro.VaiTro == vaiTro);
+                    if (!string.IsNullOrEmpty(loaiBaiDang) && loaiBaiDang != "TatCa")
+                        postQuery = postQuery.Where(rp => rp.LoaiBaiDang == loaiBaiDang);
+
+                    int newUsers = await userQuery.CountAsync(u => u.NgayTao >= startOfMonth && u.NgayTao <= endOfMonth);
+                    int newPosts = await postQuery.CountAsync(rp => rp.TrangThaiKiemDuyet == "DaDuyet" && rp.NgayTao >= startOfMonth && rp.NgayTao <= endOfMonth);
+                    decimal revenue = await _context.Transactions
+                        .Where(t => t.TrangThai == "ThanhCong" && t.NgayDuyet != null && t.NgayDuyet >= startOfMonth && t.NgayDuyet <= endOfMonth)
+                        .SumAsync(t => (decimal?)t.SoTien) ?? 0;
+
+                    results.Add(new ChartDataResponse
+                    {
+                        Thang = $"T{i}",
+                        DoanhThu = revenue,
+                        NguoiDungMoi = newUsers,
+                        BaiDangMoi = newPosts
+                    });
+                }
+            }
+            else
+            {
+                for (int i = months - 1; i >= 0; i--)
+                {
+                    var targetDate = now.AddMonths(-i);
+                    if (targetDate > now)
+                    {
+                        results.Add(new ChartDataResponse
+                        {
+                            Thang = $"T{targetDate.Month}",
+                            DoanhThu = null,
+                            NguoiDungMoi = null,
+                            BaiDangMoi = null
+                        });
+                        continue;
+                    }
+
+                    var startOfMonth = new DateTime(targetDate.Year, targetDate.Month, 1);
+                    var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+
+                    var userQuery = _context.Users.Where(u => u.VaiTro == "NguoiThue" || u.VaiTro == "ChuTro").AsQueryable();
+                    if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "TatCa")
+                        userQuery = userQuery.Where(u => u.VaiTro == vaiTro);
+
+                    var postQuery = _context.RoomPosts.AsQueryable();
+                    if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "TatCa")
+                        postQuery = postQuery.Where(rp => rp.ChuTro.VaiTro == vaiTro);
+                    if (!string.IsNullOrEmpty(loaiBaiDang) && loaiBaiDang != "TatCa")
+                        postQuery = postQuery.Where(rp => rp.LoaiBaiDang == loaiBaiDang);
+
+                    int newUsers = await userQuery.CountAsync(u => u.NgayTao >= startOfMonth && u.NgayTao <= endOfMonth);
+                    int newPosts = await postQuery.CountAsync(rp => rp.TrangThaiKiemDuyet == "DaDuyet" && rp.NgayTao >= startOfMonth && rp.NgayTao <= endOfMonth);
+                    decimal revenue = await _context.Transactions
+                        .Where(t => t.TrangThai == "ThanhCong" && t.NgayDuyet != null && t.NgayDuyet >= startOfMonth && t.NgayDuyet <= endOfMonth)
+                        .SumAsync(t => (decimal?)t.SoTien) ?? 0;
+
+                    results.Add(new ChartDataResponse
+                    {
+                        Thang = $"T{targetDate.Month}",
+                        DoanhThu = revenue,
+                        NguoiDungMoi = newUsers,
+                        BaiDangMoi = newPosts
+                    });
+                }
+            }
+
+            return results;
         }
 
         // ===== USER MANAGEMENT =====

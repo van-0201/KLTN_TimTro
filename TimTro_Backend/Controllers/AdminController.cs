@@ -67,9 +67,28 @@ namespace TimTro_Backend.Controllers
         /// </summary>
         [HttpGet("statistics")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetStatistics([FromQuery] int? month = null, [FromQuery] int? year = null)
+        public async Task<IActionResult> GetStatistics(
+            [FromQuery] int? month = null, 
+            [FromQuery] int? year = null,
+            [FromQuery] string? loaiBaiDang = null,
+            [FromQuery] string? vaiTro = null)
         {
-            var stats = await _adminService.GetStatisticsAsync(month, year);
+            var stats = await _adminService.GetStatisticsAsync(month, year, loaiBaiDang, vaiTro);
+            return Ok(stats);
+        }
+
+        /// <summary>
+        /// Dữ liệu biểu đồ (Dashboard): Chỉ Admin
+        /// </summary>
+        [HttpGet("chart-statistics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetChartStatistics(
+            [FromQuery] int months = 6,
+            [FromQuery] string? loaiBaiDang = null,
+            [FromQuery] string? vaiTro = null,
+            [FromQuery] int? year = null)
+        {
+            var stats = await _adminService.GetChartStatisticsAsync(months, loaiBaiDang, vaiTro, year);
             return Ok(stats);
         }
 

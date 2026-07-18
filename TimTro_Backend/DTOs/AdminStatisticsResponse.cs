@@ -7,6 +7,7 @@ namespace TimTro_Backend.DTOs
         public int TongNguoiDung { get; set; }
         public int NguoiDungMoiThangNay { get; set; }
         public int TongBaiDang { get; set; }
+        public int BaiDangMoiThangNay { get; set; }
         public int BaiDangChoDuyet { get; set; }
         public int TongBaoCaoChoXuLy { get; set; }
         public decimal DoanhThuThangNay { get; set; }
