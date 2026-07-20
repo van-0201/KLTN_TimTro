@@ -114,7 +114,7 @@ const RoommateDetail = () => {
                 <h1 className="page-title">Chi tiết hồ sơ</h1>
             </div>
 
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px'}}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px'}}>
                 {/* Left column: Profile info */}
                 <div className="form-card">
                     <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px'}}>
@@ -135,7 +135,7 @@ const RoommateDetail = () => {
                     </div>
 
                     <h3 style={{marginBottom: '16px', color: 'var(--primary)'}}>Thông tin cơ bản</h3>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px'}}>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '24px'}}>
                         <div>
                             <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Giới tính</div>
                             <div style={{fontWeight: 500}}>{profile.gioiTinh === 'Nam' ? 'Nam' : profile.gioiTinh === 'Nu' ? 'Nữ' : 'Chưa rõ'}</div>

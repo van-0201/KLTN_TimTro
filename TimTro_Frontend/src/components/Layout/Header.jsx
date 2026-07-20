@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSignOutAlt, FaUser, FaChevronDown, FaLock, FaBell, FaHeadset, FaCommentDots } from 'react-icons/fa';
+import { FaSignOutAlt, FaUser, FaChevronDown, FaLock, FaBell, FaHeadset, FaCommentDots, FaBars } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
 import api from '../../services/api';
 import { getAuthUser } from '../../utils/auth';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-const Header = () => {
+const Header = ({ onToggleSidebar }) => {
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -100,6 +100,9 @@ const Header = () => {
     return (
         <header className="header">
             <div className="header-left">
+                <button className="sidebar-toggle" onClick={onToggleSidebar}>
+                    <FaBars />
+                </button>
                 <div className="header-title">{getHeaderTitle()}</div>
             </div>
             <div className="header-right">
@@ -111,7 +114,7 @@ const Header = () => {
                                 <FaHeadset style={{fontSize: '19px', color: showSupportDropdown ? 'var(--primary)' : 'var(--text-main)'}} />
                                 
                                 {showSupportDropdown && supportInfo && (
-                                    <div className="notif-dropdown" onClick={e => e.stopPropagation()} style={{ padding: '20px', width: '320px', top: '100%', right: '0' }}>
+                                    <div className="notif-dropdown support-dropdown" onClick={e => e.stopPropagation()} style={{ padding: '20px' }}>
                                         <h3 style={{marginTop: 0, marginBottom: '20px', textAlign: 'center', color: 'var(--text-main)', fontSize: '18px'}}>Liên hệ Quản trị viên</h3>
                                         
                                         <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px'}}>

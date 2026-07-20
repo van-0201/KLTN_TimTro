@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
+import MainLayout from './components/Layout/MainLayout';
 import './styles/layout.css';
 import { getAuthUser, isLoggedIn } from './utils/auth';
 
@@ -62,103 +63,97 @@ function App() {
 
                 {/* Main App Routes - có Layout đầy đủ */}
                 <Route path="*" element={
-                    <div className="layout-container">
-                        <Sidebar />
-                        <div className="main-content">
-                            <Header />
-                            <div className="content-area">
-                                <Routes>
-                                    {/* Public - Ai cũng xem được kể cả chưa đăng nhập */}
-                                    <Route path="/" element={<Home />} />
-                                    <Route path="/room-posts" element={<RoomPostList />} />
-                                    <Route path="/room-posts/:id" element={<RoomPostDetail />} />
+                    <MainLayout>
+                        <Routes>
+                            {/* Public - Ai cũng xem được kể cả chưa đăng nhập */}
+                            <Route path="/" element={<Home />} />
+                            <Route path="/room-posts" element={<RoomPostList />} />
+                            <Route path="/room-posts/:id" element={<RoomPostDetail />} />
 
-                                    {/* Chỉ cần đăng nhập */}
-                                    <Route path="/my-posts" element={<PrivateRoute><MyRoomPosts /></PrivateRoute>} />
-                                    <Route path="/my-profile" element={<PrivateRoute><MyProfile /></PrivateRoute>} />
-                                    <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
-                                    <Route path="/update-profile" element={<PrivateRoute><UpdateProfile /></PrivateRoute>} />
+                            {/* Chỉ cần đăng nhập */}
+                            <Route path="/my-posts" element={<PrivateRoute><MyRoomPosts /></PrivateRoute>} />
+                            <Route path="/my-profile" element={<PrivateRoute><MyProfile /></PrivateRoute>} />
+                            <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
+                            <Route path="/update-profile" element={<PrivateRoute><UpdateProfile /></PrivateRoute>} />
 
-                                    {/* Đăng bài / Sửa bài: ChuTro đăng phòng, NguoiThue đăng tìm ghép */}
-                                    <Route path="/create-post" element={
-                                        <RoleRoute allowedRoles={['ChuTro', 'NguoiThue', 'Admin', 'Moderator']}>
-                                            <CreateRoomPost />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/edit-post/:id" element={
-                                        <RoleRoute allowedRoles={['ChuTro', 'NguoiThue', 'Admin', 'Moderator']}>
-                                            <EditRoomPost />
-                                        </RoleRoute>
-                                    } />
+                            {/* Đăng bài / Sửa bài: ChuTro đăng phòng, NguoiThue đăng tìm ghép */}
+                            <Route path="/create-post" element={
+                                <RoleRoute allowedRoles={['ChuTro', 'NguoiThue', 'Admin', 'Moderator']}>
+                                    <CreateRoomPost />
+                                </RoleRoute>
+                            } />
+                            <Route path="/edit-post/:id" element={
+                                <RoleRoute allowedRoles={['ChuTro', 'NguoiThue', 'Admin', 'Moderator']}>
+                                    <EditRoomPost />
+                                </RoleRoute>
+                            } />
 
-                                    {/* Lịch hẹn: ChuTro và NguoiThue */}
-                                    <Route path="/appointments" element={
-                                        <RoleRoute allowedRoles={['ChuTro', 'NguoiThue']}>
-                                            <AppointmentList />
-                                        </RoleRoute>
-                                    } />
+                            {/* Lịch hẹn: ChuTro và NguoiThue */}
+                            <Route path="/appointments" element={
+                                <RoleRoute allowedRoles={['ChuTro', 'NguoiThue']}>
+                                    <AppointmentList />
+                                </RoleRoute>
+                            } />
 
-                                    {/* Tìm bạn ở ghép: CHỈ NguoiThue theo yêu cầu nghiệp vụ */}
-                                    <Route path="/roommates" element={
-                                        <RoleRoute allowedRoles={['NguoiThue']}>
-                                            <RoommateList />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/roommate/:id" element={
-                                        <RoleRoute allowedRoles={['NguoiThue']}>
-                                            <RoommateDetail />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/match-requests" element={
-                                        <RoleRoute allowedRoles={['NguoiThue']}>
-                                            <MatchRequests />
-                                        </RoleRoute>
-                                    } />
+                            {/* Tìm bạn ở ghép: CHỈ NguoiThue theo yêu cầu nghiệp vụ */}
+                            <Route path="/roommates" element={
+                                <RoleRoute allowedRoles={['NguoiThue']}>
+                                    <RoommateList />
+                                </RoleRoute>
+                            } />
+                            <Route path="/roommate/:id" element={
+                                <RoleRoute allowedRoles={['NguoiThue']}>
+                                    <RoommateDetail />
+                                </RoleRoute>
+                            } />
+                            <Route path="/match-requests" element={
+                                <RoleRoute allowedRoles={['NguoiThue']}>
+                                    <MatchRequests />
+                                </RoleRoute>
+                            } />
 
-                                    {/* Mua gói dịch vụ: Chỉ ChuTro */}
-                                    <Route path="/packages" element={
-                                        <RoleRoute allowedRoles={['ChuTro']}>
-                                            <Packages />
-                                        </RoleRoute>
-                                    } />
+                            {/* Mua gói dịch vụ: Chỉ ChuTro */}
+                            <Route path="/packages" element={
+                                <RoleRoute allowedRoles={['ChuTro']}>
+                                    <Packages />
+                                </RoleRoute>
+                            } />
 
-                                    {/* Lịch sử giao dịch: ChuTro, Admin, Moderator */}
-                                    <Route path="/transaction-history" element={
-                                        <RoleRoute allowedRoles={['ChuTro', 'Admin', 'Moderator']}>
-                                            <TransactionHistory />
-                                        </RoleRoute>
-                                    } />
+                            {/* Lịch sử giao dịch: ChuTro, Admin, Moderator */}
+                            <Route path="/transaction-history" element={
+                                <RoleRoute allowedRoles={['ChuTro', 'Admin', 'Moderator']}>
+                                    <TransactionHistory />
+                                </RoleRoute>
+                            } />
 
-                                    {/* === ADMIN / MODERATOR ROUTES === */}
-                                    <Route path="/admin/dashboard" element={
-                                        <RoleRoute allowedRoles={['Admin']}>
-                                            <AdminDashboard />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/admin/approval" element={
-                                        <RoleRoute allowedRoles={['Admin', 'Moderator']}>
-                                            <ApprovalDashboard />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/admin/reports" element={
-                                        <RoleRoute allowedRoles={['Admin', 'Moderator']}>
-                                            <ReportList />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/admin/transactions" element={
-                                        <RoleRoute allowedRoles={['Admin', 'Moderator']}>
-                                            <TransactionApproval />
-                                        </RoleRoute>
-                                    } />
-                                    <Route path="/admin/users" element={
-                                        <RoleRoute allowedRoles={['Admin']}>
-                                            <UserManagement />
-                                        </RoleRoute>
-                                    } />
-                                </Routes>
-                            </div>
-                        </div>
-                    </div>
+                            {/* === ADMIN / MODERATOR ROUTES === */}
+                            <Route path="/admin/dashboard" element={
+                                <RoleRoute allowedRoles={['Admin']}>
+                                    <AdminDashboard />
+                                </RoleRoute>
+                            } />
+                            <Route path="/admin/approval" element={
+                                <RoleRoute allowedRoles={['Admin', 'Moderator']}>
+                                    <ApprovalDashboard />
+                                </RoleRoute>
+                            } />
+                            <Route path="/admin/reports" element={
+                                <RoleRoute allowedRoles={['Admin', 'Moderator']}>
+                                    <ReportList />
+                                </RoleRoute>
+                            } />
+                            <Route path="/admin/transactions" element={
+                                <RoleRoute allowedRoles={['Admin', 'Moderator']}>
+                                    <TransactionApproval />
+                                </RoleRoute>
+                            } />
+                            <Route path="/admin/users" element={
+                                <RoleRoute allowedRoles={['Admin']}>
+                                    <UserManagement />
+                                </RoleRoute>
+                            } />
+                        </Routes>
+                    </MainLayout>
                 } />
             </Routes>
         </BrowserRouter>

@@ -296,3 +296,37 @@
     border-radius: 6px;
     object-fit: cover;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .room-list-layout {
+        flex-direction: column;
+    }
+    
+    .filter-sidebar {
+        width: 100%;
+        position: static;
+        max-height: none;
+        margin-bottom: 24px;
+    }
+    
+    .room-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .room-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}

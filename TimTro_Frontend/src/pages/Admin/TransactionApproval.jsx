@@ -64,47 +64,49 @@ const TransactionApproval = () => {
                         Không có giao dịch nào đang chờ duyệt.
                     </div>
                 ) : (
-                    <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '10px'}}>
-                        <thead>
-                            <tr style={{borderBottom: '2px solid var(--border-color)', textAlign: 'left'}}>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Ngày tạo</th>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Người dùng</th>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Liên hệ</th>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Gói Dịch Vụ</th>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Số tiền</th>
-                                <th style={{padding: '12px', color: 'var(--text-muted)'}}>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transactions.map(tx => (
-                                <tr key={tx.id} style={{borderBottom: '1px solid var(--border-color)'}}>
-                                    <td style={{padding: '12px'}}>{format(new Date(tx.ngayTao), 'HH:mm dd/MM/yyyy', { locale: vi })}</td>
-                                    <td style={{padding: '12px'}}><strong>{tx.nguoiDungTen}</strong></td>
-                                    <td style={{padding: '12px'}}>
-                                        <div style={{fontSize: '13px'}}>{tx.nguoiDungPhone || 'N/A'}</div>
-                                        <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tx.nguoiDungEmail || 'N/A'}</div>
-                                    </td>
-                                    <td style={{padding: '12px', color: 'var(--primary)', fontWeight: 'bold'}}>{tx.loaiGoi}</td>
-                                    <td style={{padding: '12px', color: '#ef4444', fontWeight: 'bold'}}>{formatCurrency(tx.soTien)}</td>
-                                    <td style={{padding: '12px'}}>
-                                        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                                            {tx.minhChung && (
-                                                <button onClick={() => setSelectedImage(tx.minhChung)} style={{background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}} title="Xem minh chứng">
-                                                    <FaImage /> Xem minh chứng
-                                                </button>
-                                            )}
-                                            <button onClick={() => handleApprove(tx.id, true)} style={{background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}}>
-                                                <FaCheck /> Duyệt
-                                            </button>
-                                            <button onClick={() => handleApprove(tx.id, false)} style={{background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}}>
-                                                <FaTimes /> Từ chối
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div style={{overflowX: 'auto'}}>
+                        <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '10px', minWidth: '750px'}}>
+                            <thead>
+                                <tr style={{borderBottom: '2px solid var(--border-color)', textAlign: 'left'}}>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Ngày tạo</th>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Người dùng</th>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Liên hệ</th>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Gói Dịch Vụ</th>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Số tiền</th>
+                                    <th style={{padding: '12px', color: 'var(--text-muted)'}}>Hành động</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {transactions.map(tx => (
+                                    <tr key={tx.id} style={{borderBottom: '1px solid var(--border-color)'}}>
+                                        <td style={{padding: '12px'}}>{format(new Date(tx.ngayTao), 'HH:mm dd/MM/yyyy', { locale: vi })}</td>
+                                        <td style={{padding: '12px'}}><strong>{tx.nguoiDungTen}</strong></td>
+                                        <td style={{padding: '12px'}}>
+                                            <div style={{fontSize: '13px'}}>{tx.nguoiDungPhone || 'N/A'}</div>
+                                            <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tx.nguoiDungEmail || 'N/A'}</div>
+                                        </td>
+                                        <td style={{padding: '12px', color: 'var(--primary)', fontWeight: 'bold'}}>{tx.loaiGoi}</td>
+                                        <td style={{padding: '12px', color: '#ef4444', fontWeight: 'bold'}}>{formatCurrency(tx.soTien)}</td>
+                                        <td style={{padding: '12px'}}>
+                                            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                                {tx.minhChung && (
+                                                    <button onClick={() => setSelectedImage(tx.minhChung)} style={{background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}} title="Xem minh chứng">
+                                                        <FaImage /> Xem minh chứng
+                                                    </button>
+                                                )}
+                                                <button onClick={() => handleApprove(tx.id, true)} style={{background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}}>
+                                                    <FaCheck /> Duyệt
+                                                </button>
+                                                <button onClick={() => handleApprove(tx.id, false)} style={{background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'}}>
+                                                    <FaTimes /> Từ chối
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 

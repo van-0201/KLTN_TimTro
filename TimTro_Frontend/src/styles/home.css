@@ -135,10 +135,45 @@
 
 @media (max-width: 768px) {
     .hero-title {
-        font-size: 2rem;
+        font-size: 2.2rem;
     }
     
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
     .featured-section, .features-section {
         padding: 40px 20px;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        min-height: 300px;
+        height: 50vh;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .featured-section, .features-section {
+        padding: 30px 15px;
+    }
+    
+    .section-title {
+        font-size: 1.6rem;
+    }
+
+    .feature-card {
+        padding: 30px 20px;
     }
 }

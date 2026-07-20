@@ -154,7 +154,7 @@ const ReportList = () => {
                                 </div>
                             </div>
 
-                            <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                            <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
                                 {/* Left: Reporter Info */}
                                 <div>
                                     <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
@@ -267,7 +267,7 @@ const ReportList = () => {
 
                             {/* Card Footer - Actions */}
                             <div style={{
-                                display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px',
+                                display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
                                 padding: '14px 20px',
                                 borderTop: '1px solid var(--border-color)',
                                 background: 'rgba(0,0,0,0.08)'

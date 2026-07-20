@@ -169,7 +169,7 @@ const AdminDashboard = () => {
                         <div style={{ height: '300px', width: '100%' }}>
                             {loadingRevenue ? <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>Đang tải...</div> : 
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={revenueChartData} margin={{ top: 10, right: 10, left: 20, bottom: 0 }}>
+                                <LineChart data={revenueChartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                                     <XAxis dataKey="thang" axisLine={false} tickLine={false} tick={{fill: 'var(--text-muted)', fontSize: 12}} dy={10} interval={0} />
                                     <YAxis 
@@ -198,7 +198,7 @@ const AdminDashboard = () => {
                                 <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-main)' }}>Tăng trưởng hệ thống</h3>
                                 <p style={{ margin: '4px 0 0', fontSize: '14px', color: 'var(--text-muted)' }}>Xu hướng tăng trưởng theo năm</p>
                             </div>
-                            <div style={{display: 'flex', gap: '10px'}}>
+                            <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
                                 <select 
                                     className="premium-input" 
                                     value={growthYear} 
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
                         <div style={{ height: '300px', width: '100%' }}>
                             {loadingGrowth ? <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>Đang tải...</div> : 
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={growthChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <BarChart data={growthChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                                     <XAxis dataKey="thang" axisLine={false} tickLine={false} tick={{fill: 'var(--text-muted)', fontSize: 12}} dy={10} interval={0} />
                                     <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-muted)', fontSize: 12}} />
