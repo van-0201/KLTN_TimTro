@@ -85,7 +85,7 @@ const Header = ({ onToggleSidebar }) => {
     };
 
     const getHeaderTitle = () => {
-        if (!isLoggedIn || !authUser) return 'Khám phá trọ';
+        if (!isLoggedIn || !authUser) return 'Khám phá phòng trọ';
         switch (authUser.role) {
             case 'Admin':
             case 'Moderator':
@@ -93,7 +93,7 @@ const Header = ({ onToggleSidebar }) => {
             case 'ChuTro':
                 return 'Quản lý phòng cho thuê';
             default:
-                return 'Khám phá trọ';
+                return 'Khám phá phòng trọ';
         }
     };
 
