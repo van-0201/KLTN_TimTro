@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, CircleMarker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../../services/api';
 import '../../styles/roommate.css';
@@ -123,9 +123,11 @@ const RoommateDetail = () => {
                         </div>
                         <div>
                             <h2 style={{margin: '0 0 8px 0'}}>{profile.hoTen}</h2>
-                            <div className="roommate-status status-need-room">
-                                Đang tìm người cùng ghép phòng
-                            </div>
+                            {matchStatus?.status !== 'Confirmed' && (
+                                <div className="roommate-status status-need-room">
+                                    Đang tìm người cùng ghép phòng
+                                </div>
+                            )}
                             {profile.matchPercentage > 0 && (
                                 <div style={{marginTop: '8px', display: 'inline-block', fontSize: '14px', padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold'}}>
                                     Hợp nhau {profile.matchPercentage}%
@@ -250,19 +252,33 @@ const RoommateDetail = () => {
                                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                                 
                                 {hasMyLocation && (
-                                    <Circle 
-                                        center={[myProfile.viDoMucTieu, myProfile.kinhDoMucTieu]} 
-                                        radius={myProfile.banKinhTimKiemToiDa || 3000} 
-                                        pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }} 
-                                    />
+                                    <>
+                                        <Circle 
+                                            center={[myProfile.viDoMucTieu, myProfile.kinhDoMucTieu]} 
+                                            radius={myProfile.banKinhTimKiemToiDa || 1500} 
+                                            pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }} 
+                                        />
+                                        <CircleMarker 
+                                            center={[myProfile.viDoMucTieu, myProfile.kinhDoMucTieu]} 
+                                            radius={5}
+                                            pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 1 }} 
+                                        />
+                                    </>
                                 )}
                                 
                                 {hasTargetLocation && (
-                                    <Circle 
-                                        center={[profile.viDoMucTieu, profile.kinhDoMucTieu]} 
-                                        radius={profile.banKinhTimKiemToiDa || 3000} 
-                                        pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.2 }} 
-                                    />
+                                    <>
+                                        <Circle 
+                                            center={[profile.viDoMucTieu, profile.kinhDoMucTieu]} 
+                                            radius={profile.banKinhTimKiemToiDa || 1500} 
+                                            pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.2 }} 
+                                        />
+                                        <CircleMarker 
+                                            center={[profile.viDoMucTieu, profile.kinhDoMucTieu]} 
+                                            radius={5}
+                                            pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 1 }} 
+                                        />
+                                    </>
                                 )}
                             </MapContainer>
                         ) : (

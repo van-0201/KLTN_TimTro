@@ -87,7 +87,9 @@ const AppointmentList = () => {
                 <div style={{color: 'var(--text-muted)'}}>Bạn chưa có lịch hẹn nào.</div>
             ) : (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
-                    {appointments.map(appt => (
+                    {appointments.map(appt => {
+                        const isPast = new Date(appt.thoiGianHen + (!appt.thoiGianHen.endsWith('Z') ? 'Z' : '')) < new Date();
+                        return (
                         <div key={appt.id} className="form-card" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <div>
                                 <h3 style={{marginBottom: '8px', color: 'var(--text-main)'}}>
@@ -164,21 +166,23 @@ const AppointmentList = () => {
                             <div style={{display: 'flex', gap: '10px', flexDirection: 'column'}}>
                                 {appt.trangThaiLichHen === 'ChoPhanHoi' && editingApptId !== appt.id && (
                                     <>
-                                        {appt.pendingRescheduleById !== userId && (
+                                        {appt.pendingRescheduleById !== userId && !isPast && (
                                             <button className="btn-primary" style={{backgroundColor: '#10b981', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaXacNhan')}>Xác nhận</button>
                                         )}
-                                        <button className="btn-primary" style={{backgroundColor: '#ef4444', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaHuy')}>Hủy</button>
+                                        {!isPast && (
+                                            <button className="btn-primary" style={{backgroundColor: '#ef4444', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaHuy')}>Hủy</button>
+                                        )}
                                     </>
                                 )}
-                                {appt.trangThaiLichHen === 'DaXacNhan' && editingApptId !== appt.id && (
+                                {appt.trangThaiLichHen === 'DaXacNhan' && editingApptId !== appt.id && !isPast && (
                                      <button className="btn-primary" style={{backgroundColor: '#ef4444', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaHuy')}>Hủy lịch</button>
                                 )}
-                                {appt.trangThaiLichHen === 'ChoPhanHoi' && editingApptId !== appt.id && (
+                                {appt.trangThaiLichHen === 'ChoPhanHoi' && editingApptId !== appt.id && !isPast && (
                                     <button className="btn-primary" style={{backgroundColor: 'var(--primary)', justifyContent: 'center'}} onClick={() => setEditingApptId(appt.id)}>Đổi giờ</button>
                                 )}
                             </div>
                         </div>
-                    ))}
+                    );})}
                 </div>
             )}
 
