@@ -85,7 +85,7 @@ const Header = ({ onToggleSidebar }) => {
     };
 
     const getHeaderTitle = () => {
-        if (!isLoggedIn || !authUser) return 'Khám phá phòng trọ';
+        if (!isLoggedIn || !authUser) return 'Khám phá trọ';
         switch (authUser.role) {
             case 'Admin':
             case 'Moderator':
@@ -93,7 +93,7 @@ const Header = ({ onToggleSidebar }) => {
             case 'ChuTro':
                 return 'Quản lý phòng cho thuê';
             default:
-                return 'Khám phá phòng trọ';
+                return 'Khám phá trọ';
         }
     };
 
@@ -209,7 +209,7 @@ const Header = ({ onToggleSidebar }) => {
                             <div className="avatar" style={{fontSize: '16px', fontWeight: 'bold'}}>
                                 {authUser?.email ? authUser.email.charAt(0).toUpperCase() : <FaUser />}
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                            <div className="profile-info" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
                                 <div style={{fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                     {authUser?.email || 'Tài khoản'}
                                 </div>

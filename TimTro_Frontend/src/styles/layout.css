@@ -396,8 +396,8 @@
     margin-right: 0;
   }
 
-  .user-profile > div:nth-child(2) {
-    display: none;
+  .profile-info {
+    display: none !important;
   }
 
   .notif-dropdown,
