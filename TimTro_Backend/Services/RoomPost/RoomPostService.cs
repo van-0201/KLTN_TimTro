@@ -24,7 +24,7 @@ namespace TimTro_Backend.Services.RoomPost
             _notificationService = notificationService;
         }
 
-        public async Task<PagedResult<RoomPostResponse>> GetAllAsync(int page = 1, int pageSize = 12, string? searchKeyword = null, decimal? minPrice = null, decimal? maxPrice = null, decimal? minArea = null, decimal? maxArea = null, string? loaiPhong = null, List<string>? amenities = null, double? userLat = null, double? userLng = null, double? radiusKm = null)
+        private IQueryable<TimTro_Backend.Models.RoomPost> BuildSearchQuery(string? searchKeyword, decimal? minPrice, decimal? maxPrice, decimal? minArea, decimal? maxArea, string? loaiPhong, List<string>? amenities, double? userLat, double? userLng, double? radiusKm)
         {
             var query = _context.RoomPosts
                 .Include(rp => rp.ChuTro)
@@ -32,6 +32,7 @@ namespace TimTro_Backend.Services.RoomPost
                 .Where(rp => rp.TrangThaiPhong == "ConTrong" 
                           && rp.TrangThaiKiemDuyet == "DaDuyet" 
                           && !rp.IsHidden
+                          && rp.ChuTro.TrangThaiTaiKhoan == true
                           && (rp.ChuTro.VaiTro == "NguoiThue" || (rp.ChuTro.NgayHetHanDichVu != null && rp.ChuTro.NgayHetHanDichVu > DateTime.UtcNow)))
                 .AsQueryable();
 
@@ -41,7 +42,7 @@ namespace TimTro_Backend.Services.RoomPost
                 foreach (var token in tokens)
                 {
                     var t = token.Trim();
-                    query = query.Where(rp => rp.TieuDe.Contains(t) || rp.DiaChiChiTiet.Contains(t));
+                    query = query.Where(rp => rp.TieuDe.Contains(t) || rp.MoTaChiTiet.Contains(t));
                 }
             }
 
@@ -51,7 +52,6 @@ namespace TimTro_Backend.Services.RoomPost
             if (maxArea.HasValue) query = query.Where(rp => rp.DienTich <= maxArea.Value);
             if (!string.IsNullOrEmpty(loaiPhong)) query = query.Where(rp => rp.LoaiBaiDang == loaiPhong);
 
-            // Amenities filter (AND logic, JSON string match)
             if (amenities != null && amenities.Any())
             {
                 foreach (var amenity in amenities)
@@ -60,12 +60,9 @@ namespace TimTro_Backend.Services.RoomPost
                 }
             }
 
-            // Location filter - Bounding Box (Lọc thô ở CSDL)
             if (userLat.HasValue && userLng.HasValue && radiusKm.HasValue && radiusKm.Value > 0)
             {
-                // 1 độ vĩ tuyến ~ 111.32 km
                 double latDelta = radiusKm.Value / 111.32;
-                // 1 độ kinh tuyến ~ 111.32 km * cos(latitude)
                 double lngDelta = radiusKm.Value / (111.32 * Math.Cos(userLat.Value * Math.PI / 180.0));
 
                 double minLat = userLat.Value - latDelta;
@@ -77,11 +74,16 @@ namespace TimTro_Backend.Services.RoomPost
                                        && rp.KinhDoThucTe >= minLng && rp.KinhDoThucTe <= maxLng);
             }
 
-            var posts = await query.ToListAsync();
+            return query;
+        }
 
-            // Location filter - Haversine (Lọc tinh ở RAM loại bỏ các điểm góc hình vuông)
+        public async Task<PagedResult<RoomPostResponse>> GetAllAsync(int page = 1, int pageSize = 12, string? searchKeyword = null, decimal? minPrice = null, decimal? maxPrice = null, decimal? minArea = null, decimal? maxArea = null, string? loaiPhong = null, List<string>? amenities = null, double? userLat = null, double? userLng = null, double? radiusKm = null)
+        {
+            var query = BuildSearchQuery(searchKeyword, minPrice, maxPrice, minArea, maxArea, loaiPhong, amenities, userLat, userLng, radiusKm);
+
             if (userLat.HasValue && userLng.HasValue && radiusKm.HasValue && radiusKm.Value > 0)
             {
+                var posts = await query.ToListAsync();
                 var filteredPosts = new List<TimTro_Backend.Models.RoomPost>();
                 foreach (var post in posts)
                 {
@@ -91,23 +93,76 @@ namespace TimTro_Backend.Services.RoomPost
                         filteredPosts.Add(post);
                     }
                 }
-                posts = filteredPosts;
+                
+                var totalRecords = filteredPosts.Count;
+                var items = filteredPosts.OrderByDescending(p => p.Id)
+                                 .Skip((page - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .Select(MapToResponse)
+                                 .ToList();
+
+                return new PagedResult<RoomPostResponse>
+                {
+                    TotalRecords = totalRecords,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                    CurrentPage = page,
+                    Items = items
+                };
             }
-
-            var totalRecords = posts.Count;
-            var items = posts.OrderByDescending(p => p.Id)
-                             .Skip((page - 1) * pageSize)
-                             .Take(pageSize)
-                             .Select(MapToResponse)
-                             .ToList();
-
-            return new PagedResult<RoomPostResponse>
+            else 
             {
-                TotalRecords = totalRecords,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                CurrentPage = page,
-                Items = items
-            };
+                var totalRecords = await query.CountAsync();
+                var items = await query.OrderByDescending(p => p.Id)
+                                 .Skip((page - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToListAsync();
+
+                return new PagedResult<RoomPostResponse>
+                {
+                    TotalRecords = totalRecords,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                    CurrentPage = page,
+                    Items = items.Select(MapToResponse).ToList()
+                };
+            }
+        }
+
+        public async Task<List<MapPinResponse>> GetMapPinsAsync(string? searchKeyword = null, decimal? minPrice = null, decimal? maxPrice = null, decimal? minArea = null, decimal? maxArea = null, string? loaiPhong = null, List<string>? amenities = null, double? userLat = null, double? userLng = null, double? radiusKm = null)
+        {
+            var query = BuildSearchQuery(searchKeyword, minPrice, maxPrice, minArea, maxArea, loaiPhong, amenities, userLat, userLng, radiusKm);
+
+            if (userLat.HasValue && userLng.HasValue && radiusKm.HasValue && radiusKm.Value > 0)
+            {
+                var posts = await query.ToListAsync();
+                var filteredPosts = new List<MapPinResponse>();
+                foreach (var post in posts)
+                {
+                    double distance = CalculateHaversineDistance(userLat.Value, userLng.Value, post.ViDoThucTe, post.KinhDoThucTe);
+                    if (distance <= radiusKm.Value)
+                    {
+                        filteredPosts.Add(new MapPinResponse
+                        {
+                            Id = post.Id,
+                            TieuDe = post.TieuDe,
+                            GiaThue = post.GiaThue,
+                            ViDoThucTe = post.ViDoThucTe,
+                            KinhDoThucTe = post.KinhDoThucTe
+                        });
+                    }
+                }
+                return filteredPosts;
+            }
+            else
+            {
+                return await query.Take(300).Select(post => new MapPinResponse
+                {
+                    Id = post.Id,
+                    TieuDe = post.TieuDe,
+                    GiaThue = post.GiaThue,
+                    ViDoThucTe = post.ViDoThucTe,
+                    KinhDoThucTe = post.KinhDoThucTe
+                }).ToListAsync();
+            }
         }
 
         private double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
@@ -137,6 +192,7 @@ namespace TimTro_Backend.Services.RoomPost
                 .Where(rp => rp.TrangThaiPhong == "ConTrong" 
                           && rp.TrangThaiKiemDuyet == "DaDuyet" 
                           && !rp.IsHidden
+                          && rp.ChuTro.TrangThaiTaiKhoan == true
                           && (rp.ChuTro.VaiTro == "NguoiThue" || (rp.ChuTro.NgayHetHanDichVu != null && rp.ChuTro.NgayHetHanDichVu > DateTime.UtcNow)))
                 .OrderByDescending(rp => rp.Id);
 

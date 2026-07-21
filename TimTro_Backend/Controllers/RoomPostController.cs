@@ -40,6 +40,23 @@ namespace TimTro_Backend.Controllers
             return Ok(posts);
         }
 
+        [HttpGet("map-pins")]
+        public async Task<IActionResult> GetMapPins(
+            [FromQuery] string? search = null, 
+            [FromQuery] decimal? minPrice = null, 
+            [FromQuery] decimal? maxPrice = null, 
+            [FromQuery] decimal? minArea = null, 
+            [FromQuery] decimal? maxArea = null, 
+            [FromQuery] string? loaiPhong = null,
+            [FromQuery] List<string>? amenities = null,
+            [FromQuery] double? userLat = null,
+            [FromQuery] double? userLng = null,
+            [FromQuery] double? radiusKm = null)
+        {
+            var pins = await _roomPostService.GetMapPinsAsync(search, minPrice, maxPrice, minArea, maxArea, loaiPhong, amenities, userLat, userLng, radiusKm);
+            return Ok(pins);
+        }
+
         [HttpGet("active")]
         public async Task<IActionResult> GetAllActive(
             [FromQuery] int page = 1,
