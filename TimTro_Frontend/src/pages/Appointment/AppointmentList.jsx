@@ -15,6 +15,7 @@ const AppointmentList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const pageSize = 10;
+    const [activeTab, setActiveTab] = useState('ChoPhanHoi');
 
     const [editingApptId, setEditingApptId] = useState(null);
     const [newTime, setNewTime] = useState('');
@@ -30,13 +31,13 @@ const AppointmentList = () => {
     };
 
     useEffect(() => {
-        fetchAppointments(currentPage);
-    }, [currentPage]);
+        fetchAppointments(currentPage, activeTab);
+    }, [currentPage, activeTab]);
 
-    const fetchAppointments = async (page = 1) => {
+    const fetchAppointments = async (page = 1, status = 'ChoPhanHoi') => {
         try {
             const res = await api.get('/Appointment/my-appointments', {
-                params: { page, pageSize }
+                params: { page, pageSize, status }
             });
             setAppointments(res.data.items || []);
             setTotalPages(res.data.totalPages || 1);
@@ -63,6 +64,10 @@ const AppointmentList = () => {
             alert('Vui lòng chọn thời gian mới');
             return;
         }
+        if (new Date(newTime) <= new Date()) {
+            alert('Thời gian mới phải lớn hơn thời gian hiện tại');
+            return;
+        }
         try {
             await api.put(`/Appointment/${id}/time`, `"${new Date(newTime).toISOString()}"`, {
                 headers: { 'Content-Type': 'application/json' }
@@ -81,6 +86,30 @@ const AppointmentList = () => {
                 <h1 className="page-title">Quản lý lịch hẹn</h1>
             </div>
 
+            <div className="tabs" style={{display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '0'}}>
+                <button 
+                    className={`tab-btn ${activeTab === 'ChoPhanHoi' ? 'active' : ''}`}
+                    style={{background: 'none', border: 'none', padding: '12px 16px', color: activeTab === 'ChoPhanHoi' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'ChoPhanHoi' ? '2px solid var(--primary)' : '2px solid transparent', fontWeight: activeTab === 'ChoPhanHoi' ? 'bold' : 'normal', cursor: 'pointer', transition: 'all 0.2s ease'}}
+                    onClick={() => { setActiveTab('ChoPhanHoi'); setCurrentPage(1); }}
+                >
+                    Chờ phản hồi
+                </button>
+                <button 
+                    className={`tab-btn ${activeTab === 'DaXacNhan' ? 'active' : ''}`}
+                    style={{background: 'none', border: 'none', padding: '12px 16px', color: activeTab === 'DaXacNhan' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'DaXacNhan' ? '2px solid var(--primary)' : '2px solid transparent', fontWeight: activeTab === 'DaXacNhan' ? 'bold' : 'normal', cursor: 'pointer', transition: 'all 0.2s ease'}}
+                    onClick={() => { setActiveTab('DaXacNhan'); setCurrentPage(1); }}
+                >
+                    Đã xác nhận
+                </button>
+                <button 
+                    className={`tab-btn ${activeTab === 'DaHuy' ? 'active' : ''}`}
+                    style={{background: 'none', border: 'none', padding: '12px 16px', color: activeTab === 'DaHuy' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'DaHuy' ? '2px solid var(--primary)' : '2px solid transparent', fontWeight: activeTab === 'DaHuy' ? 'bold' : 'normal', cursor: 'pointer', transition: 'all 0.2s ease'}}
+                    onClick={() => { setActiveTab('DaHuy'); setCurrentPage(1); }}
+                >
+                    Đã hủy
+                </button>
+            </div>
+
             {loading ? (
                 <div>Đang tải danh sách lịch hẹn...</div>
             ) : appointments.length === 0 ? (
@@ -88,7 +117,12 @@ const AppointmentList = () => {
             ) : (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
                     {appointments.map(appt => {
-                        const isPast = new Date(appt.thoiGianHen + (!appt.thoiGianHen.endsWith('Z') ? 'Z' : '')) < new Date();
+                        const apptTime = new Date(appt.thoiGianHen + (!appt.thoiGianHen.endsWith('Z') ? 'Z' : ''));
+                        const now = new Date();
+                        const timeDiffMs = apptTime.getTime() - now.getTime();
+                        const isPast = timeDiffMs < 0;
+                        const canCancel = timeDiffMs > 24 * 60 * 60 * 1000;
+
                         return (
                         <div key={appt.id} className="form-card" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <div>
@@ -103,7 +137,7 @@ const AppointmentList = () => {
                                     )}
                                 </h3>
                                 <div style={{color: 'var(--text-muted)', fontSize: '14px', marginBottom: '4px'}}>
-                                    <strong>Thời gian:</strong> {format(new Date(appt.thoiGianHen + (!appt.thoiGianHen.endsWith('Z') ? 'Z' : '')), 'dd/MM/yyyy HH:mm')}
+                                    <strong>Thời gian:</strong> {format(apptTime, 'dd/MM/yyyy HH:mm')}
                                 </div>
                                 <div style={{color: 'var(--text-muted)', fontSize: '14px', marginBottom: '4px'}}>
                                     <strong>Địa điểm:</strong> {appt.diaDiemHen}
@@ -127,6 +161,9 @@ const AppointmentList = () => {
                                     }}>
                                         {renderStatusText(appt.trangThaiLichHen)}
                                     </span>
+                                    {appt.trangThaiLichHen === 'ChoPhanHoi' && isPast && (
+                                        <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 'bold', marginLeft: '8px' }}>(Đã quá giờ)</span>
+                                    )}
                                 </div>
 
                                 {appt.trangThaiLichHen === 'DaXacNhan' && (
@@ -156,7 +193,7 @@ const AppointmentList = () => {
 
                                 {editingApptId === appt.id && (
                                     <div style={{marginTop: '15px', display: 'flex', gap: '10px', alignItems: 'center'}}>
-                                        <input type="datetime-local" className="form-control" style={{backgroundColor: 'var(--bg-dark)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px'}} value={newTime} onChange={e => setNewTime(e.target.value)} />
+                                        <input type="datetime-local" className="form-control" style={{backgroundColor: 'var(--bg-dark)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 12px'}} value={newTime} onChange={e => setNewTime(e.target.value)} min={new Date().toISOString().slice(0, 16)} />
                                         <button className="btn-primary" style={{justifyContent: 'center'}} onClick={() => handleChangeTime(appt.id)}>Lưu</button>
                                         <button className="btn-primary" style={{backgroundColor: '#6c757d', justifyContent: 'center'}} onClick={() => setEditingApptId(null)}>Hủy</button>
                                     </div>
@@ -169,12 +206,12 @@ const AppointmentList = () => {
                                         {appt.pendingRescheduleById !== userId && !isPast && (
                                             <button className="btn-primary" style={{backgroundColor: '#10b981', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaXacNhan')}>Xác nhận</button>
                                         )}
-                                        {!isPast && (
+                                        {canCancel && (
                                             <button className="btn-primary" style={{backgroundColor: '#ef4444', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaHuy')}>Hủy</button>
                                         )}
                                     </>
                                 )}
-                                {appt.trangThaiLichHen === 'DaXacNhan' && editingApptId !== appt.id && !isPast && (
+                                {appt.trangThaiLichHen === 'DaXacNhan' && editingApptId !== appt.id && canCancel && (
                                      <button className="btn-primary" style={{backgroundColor: '#ef4444', justifyContent: 'center'}} onClick={() => handleUpdateStatus(appt.id, 'DaHuy')}>Hủy lịch</button>
                                 )}
                                 {appt.trangThaiLichHen === 'ChoPhanHoi' && editingApptId !== appt.id && !isPast && (

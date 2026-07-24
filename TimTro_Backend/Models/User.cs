@@ -14,6 +14,7 @@ namespace TimTro_Backend.Models
         public bool TrangThaiTaiKhoan { get; set; } = true;
         public DateTime NgayTao { get; set; } = DateTime.UtcNow;
         public DateTime? NgayHetHanDichVu { get; set; }
+        public DateTime? NgayDangTimOGhepGanNhat { get; set; }
 
         // Navigation properties
         public RoommateProfile RoommateProfile { get; set; }

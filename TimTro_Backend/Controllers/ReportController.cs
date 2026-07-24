@@ -36,7 +36,7 @@ namespace TimTro_Backend.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -47,7 +47,7 @@ namespace TimTro_Backend.Controllers
         }
 
         [HttpPut("{id}/resolve")]
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> ResolveReport(Guid id, [FromBody] string action)
         {
             // action: "DaXuLy" | "BacBo"

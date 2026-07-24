@@ -269,9 +269,21 @@ namespace TimTro_Backend.Services.Admin
 
         // ===== USER MANAGEMENT =====
 
-        public async Task<PagedResult<UserDto>> GetUsersAsync(string? search = null, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<UserDto>> GetUsersAsync(string? search = null, string? vaiTro = null, int page = 1, int pageSize = 10)
         {
             var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(vaiTro))
+            {
+                if (vaiTro == "QuanTriVien")
+                {
+                    query = query.Where(u => u.VaiTro == "Admin" || u.VaiTro == "Moderator");
+                }
+                else
+                {
+                    query = query.Where(u => u.VaiTro == vaiTro);
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -283,10 +295,24 @@ namespace TimTro_Backend.Services.Admin
             }
 
             var totalRecords = await query.CountAsync();
-            var users = await query.OrderByDescending(u => u.NgayTao)
+
+            List<User> users;
+            if (vaiTro == "QuanTriVien")
+            {
+                // Order Admin first, then by NgayTao descending
+                users = await query.OrderByDescending(u => u.VaiTro == "Admin" ? 1 : 0)
+                                   .ThenByDescending(u => u.NgayTao)
                                    .Skip((page - 1) * pageSize)
                                    .Take(pageSize)
                                    .ToListAsync();
+            }
+            else
+            {
+                users = await query.OrderByDescending(u => u.NgayTao)
+                                   .Skip((page - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToListAsync();
+            }
 
             return new PagedResult<UserDto>
             {
@@ -335,8 +361,38 @@ namespace TimTro_Backend.Services.Admin
             }
             catch (DbUpdateException)
             {
-                throw new Exception("Không thể xóa tài khoản đã có dữ liệu hoạt động.");
+                throw new Exception("Không thể xóa tài khoản đã có dữ liệu liên kết trên hệ thống.");
             }
+        }
+
+        public async Task CreateUserAsync(CreateUserRequest request)
+        {
+            if (request.VaiTro == "Admin")
+                throw new Exception("Không được phép tạo tài khoản Admin.");
+
+            var validRoles = new[] { "NguoiThue", "ChuTro", "Moderator" };
+            if (!validRoles.Contains(request.VaiTro))
+                throw new Exception("Vai trò không hợp lệ.");
+
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+                throw new Exception("Email đã tồn tại trong hệ thống.");
+
+            if (await _context.Users.AnyAsync(u => u.SoDienThoai == request.SoDienThoai))
+                throw new Exception("Số điện thoại đã tồn tại trong hệ thống.");
+
+            var newUser = new User
+            {
+                HoTen = request.HoTen,
+                Email = request.Email,
+                SoDienThoai = request.SoDienThoai,
+                MatKhauBam = BCrypt.Net.BCrypt.HashPassword("12345678aA@"),
+                VaiTro = request.VaiTro,
+                TrangThaiTaiKhoan = true,
+                NgayTao = DateTime.UtcNow
+            };
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
         }
 
         public async Task ResetUserPasswordAsync(Guid userId)

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TimTro_Backend.DTOs;
 using TimTro_Backend.Services.RoomPost;
+using Microsoft.EntityFrameworkCore;
 
 namespace TimTro_Backend.Controllers
 {
@@ -169,10 +170,17 @@ namespace TimTro_Backend.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
-            var success = await _roomPostService.ToggleHideAsync(id, userId);
-            if (!success) return NotFound("Bài đăng không tồn tại hoặc bạn không có quyền thao tác.");
-            
-            return Ok(new { Message = "Cập nhật trạng thái thành công." });
+            try
+            {
+                var success = await _roomPostService.ToggleHideAsync(id, userId);
+                if (!success) return NotFound("Bài đăng không tồn tại hoặc bạn không có quyền thao tác.");
+                
+                return Ok(new { Message = "Cập nhật trạng thái thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]
@@ -186,6 +194,51 @@ namespace TimTro_Backend.Controllers
             var result = await _roomPostService.DeleteAsync(id, userId);
             if (!result.Success) return BadRequest(result.ErrorMessage);
             return Ok(new { message = "Xóa bài đăng thành công" });
+        }
+
+        [Authorize]
+        [HttpGet("check-eligibility")]
+        public async Task<IActionResult> CheckEligibility()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+            
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+            
+            if (user.VaiTro == "NguoiThue")
+            {
+                if (user.NgayDangTimOGhepGanNhat.HasValue)
+                {
+                    var daysSinceLastPost = (DateTime.UtcNow - user.NgayDangTimOGhepGanNhat.Value).TotalDays;
+                    if (daysSinceLastPost < 7)
+                    {
+                        int daysLeft = 7 - (int)Math.Floor(daysSinceLastPost);
+                        return Ok(new { eligible = false, reason = $"Mỗi 7 ngày bạn chỉ được đăng 1 bài tìm người ở ghép miễn phí. Vui lòng quay lại sau {daysLeft} ngày." });
+                    }
+                }
+                
+                var activePostCount = await _context.RoomPosts
+                    .CountAsync(p => p.ChuTroId == userId && p.LoaiBaiDang == "TimNguoiOGhep" && !p.IsHidden);
+                if (activePostCount >= 1)
+                {
+                    return Ok(new { eligible = false, reason = "Bạn đang có một bài đăng trên hệ thống (Chờ duyệt / Đang hiển thị / Bị từ chối). Vui lòng cập nhật lại bài cũ hoặc Tạm ẩn/Xóa nó đi trước khi đăng bài mới!" });
+                }
+            }
+            else if (user.VaiTro == "ChuTro")
+            {
+                if (!user.NgayHetHanDichVu.HasValue || user.NgayHetHanDichVu.Value < DateTime.UtcNow)
+                {
+                    return Ok(new { eligible = false, reason = "Gói dịch vụ của bạn đã hết hạn. Vui lòng gia hạn để tiếp tục đăng tin." });
+                }
+            }
+            else 
+            {
+                return Ok(new { eligible = false, reason = "Bạn không có quyền đăng tin." });
+            }
+            
+            return Ok(new { eligible = true });
         }
     }
 }

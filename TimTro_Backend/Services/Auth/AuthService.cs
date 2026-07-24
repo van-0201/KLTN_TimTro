@@ -83,6 +83,24 @@ namespace TimTro_Backend.Services.Auth
             return true;
         }
 
+        public async Task<UserDto> GetMeAsync(Guid userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            return new UserDto
+            {
+                Id = user.Id,
+                HoTen = user.HoTen,
+                Email = user.Email,
+                SoDienThoai = user.SoDienThoai,
+                VaiTro = user.VaiTro,
+                TrangThaiTaiKhoan = user.TrangThaiTaiKhoan,
+                NgayTao = user.NgayTao,
+                NgayHetHanDichVu = user.NgayHetHanDichVu
+            };
+        }
+
         private string GenerateJwtToken(TimTro_Backend.Models.User user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));

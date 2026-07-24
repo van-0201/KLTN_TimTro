@@ -53,7 +53,7 @@ namespace TimTro_Backend.Controllers
             return Ok(list);
         }
 
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         [HttpGet("pending")]
         public async Task<IActionResult> GetAllPending(
             [FromQuery] int page = 1,
@@ -66,7 +66,7 @@ namespace TimTro_Backend.Controllers
 
 
 
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         [HttpPost("{id}/approve")]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveTransactionRequest request)
         {

@@ -50,9 +50,15 @@ const RoomPostDetail = () => {
             return;
         }
         if (!appointmentDate || !appointmentTime) return;
+        
+        const dateTime = new Date(`${appointmentDate}T${appointmentTime}:00`);
+        if (dateTime <= new Date()) {
+            alert('Thời gian hẹn phải lớn hơn thời gian hiện tại');
+            return;
+        }
+
         setBookingAppointment(true);
         try {
-            const dateTime = new Date(`${appointmentDate}T${appointmentTime}:00`);
             await api.post('/Appointment', {
                 nguoiNhanHenId: post.chuTroId,
                 roomPostId: post.id,

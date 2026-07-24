@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getAuthUser } from '../../utils/auth';
@@ -69,6 +69,22 @@ const CreateRoomPost = () => {
 
     // NguoiThue chỉ được đăng tìm người ở ghép
     const defaultLoai = role === 'NguoiThue' ? 'TimNguoiOGhep' : 'ChoThuePhong';
+
+    const checkRef = useRef(false);
+
+    useEffect(() => {
+        if (!checkRef.current && (role === 'NguoiThue' || role === 'ChuTro')) {
+            checkRef.current = true;
+            api.get('/RoomPost/check-eligibility').then(res => {
+                if (res.data && !res.data.eligible) {
+                    alert(res.data.reason);
+                    navigate('/my-posts');
+                }
+            }).catch(err => {
+                console.error("Lỗi khi kiểm tra điều kiện đăng bài:", err);
+            });
+        }
+    }, [role, navigate]);
 
     const [formData, setFormData] = useState({
         tieuDe: '',

@@ -13,6 +13,8 @@ namespace TimTro_Backend.Services.Roommate
         Task<RoommateProfileResponse?> GetProfileByUserIdAsync(Guid targetUserId, Guid currentUserId);
         Task<RoommateProfileResponse> UpsertProfileAsync(Guid userId, RoommateProfileRequest request);
         Task<PagedResult<RoommateProfileResponse>> SearchProfilesAsync(Guid currentUserId, int page = 1, int pageSize = 12);
+        Task<List<RoomPostResponse>> GetMatchedPostsAsync(Guid targetUserId, Guid currentUserId);
+        Task<bool> ToggleProfileActiveAsync(Guid userId);
 
         // Match
         Task<MatchRequestResponse> SendMatchRequestAsync(Guid senderId, Guid receiverId);

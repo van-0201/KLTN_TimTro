@@ -14,6 +14,8 @@ namespace TimTro_Backend.Models
         public string? GhiChu { get; set; }
         public string TrangThaiLichHen { get; set; } = "ChoPhanHoi"; // ChoPhanHoi / DaXacNhan / DaHuy
         public Guid? PendingRescheduleById { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.UtcNow;
+        public DateTime NgayCapNhat { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public User NguoiKhoiTao { get; set; }

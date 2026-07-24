@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Circle, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../../services/api';
 import '../../styles/roommate.css';
@@ -13,6 +13,7 @@ const RoommateDetail = () => {
     const [profile, setProfile] = useState(null);
     const [myProfile, setMyProfile] = useState(null);
     const [matchStatus, setMatchStatus] = useState(null); // { status, isSender, requestId }
+    const [matchedPosts, setMatchedPosts] = useState([]);
     const [sendingRequest, setSendingRequest] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -23,14 +24,16 @@ const RoommateDetail = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [targetRes, myRes, statusRes] = await Promise.all([
+            const [targetRes, myRes, statusRes, postsRes] = await Promise.all([
                 api.get(`/Roommate/profile/by-user/${id}`),
                 api.get(`/Roommate/profile`).catch(() => ({ data: null })),
-                api.get(`/Roommate/match-status/${id}`).catch(() => ({ data: null }))
+                api.get(`/Roommate/match-status/${id}`).catch(() => ({ data: null })),
+                api.get(`/Roommate/match-posts/${id}`).catch(() => ({ data: [] }))
             ]);
             setProfile(targetRes.data);
             setMyProfile(myRes.data);
             setMatchStatus(statusRes.data);
+            setMatchedPosts(postsRes.data || []);
         } catch (error) {
             console.error(error);
             alert('Không thể tải hồ sơ hoặc hồ sơ đã bị ẩn.');
@@ -280,6 +283,22 @@ const RoommateDetail = () => {
                                         />
                                     </>
                                 )}
+                                
+                                {matchedPosts.map(post => (
+                                    <CircleMarker 
+                                        key={post.id}
+                                        center={[post.viDoThucTe, post.kinhDoThucTe]}
+                                        radius={8}
+                                        pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.8 }}
+                                    >
+                                        <Popup>
+                                            <div style={{minWidth: '150px'}}>
+                                                <Link to={`/room-posts/${post.id}`} style={{fontWeight: 'bold', color: 'var(--primary)', textDecoration: 'none', display: 'block', marginBottom: '4px'}}>{post.tieuDe}</Link>
+                                                <div>Giá: {post.giaThue.toLocaleString()} đ</div>
+                                            </div>
+                                        </Popup>
+                                    </CircleMarker>
+                                ))}
                             </MapContainer>
                         ) : (
                             <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'}}>
@@ -295,6 +314,10 @@ const RoommateDetail = () => {
                         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                             <div style={{width: '16px', height: '16px', backgroundColor: 'rgba(255, 0, 0, 0.2)', border: '2px solid red', borderRadius: '50%'}}></div>
                             <span>Khu vực của {profile.hoTen}</span>
+                        </div>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <div style={{width: '16px', height: '16px', backgroundColor: 'green', border: '2px solid green', borderRadius: '50%'}}></div>
+                            <span>Bài đăng phù hợp</span>
                         </div>
                     </div>
                 </div>

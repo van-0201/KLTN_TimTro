@@ -73,14 +73,20 @@ namespace TimTro_Backend.Services.Appointment
             return MapToResponse(loadedAppt);
         }
 
-        public async Task<PagedResult<AppointmentResponse>> GetMyAppointmentsAsync(Guid userId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<AppointmentResponse>> GetMyAppointmentsAsync(Guid userId, string? status, int page = 1, int pageSize = 10)
         {
             var query = _context.Appointments
                 .Include(a => a.NguoiKhoiTao)
                 .Include(a => a.NguoiNhanHen)
                 .Include(a => a.RoomPost)
-                .Where(a => a.NguoiKhoiTaoId == userId || a.NguoiNhanHenId == userId)
-                .OrderByDescending(a => a.ThoiGianHen);
+                .Where(a => a.NguoiKhoiTaoId == userId || a.NguoiNhanHenId == userId);
+                
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(a => a.TrangThaiLichHen == status);
+            }
+                
+            query = query.OrderByDescending(a => a.NgayCapNhat);
 
             var totalRecords = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -117,6 +123,7 @@ namespace TimTro_Backend.Services.Appointment
             }
 
             appt.TrangThaiLichHen = status;
+            appt.NgayCapNhat = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             // Send notification to the other party
@@ -164,6 +171,7 @@ namespace TimTro_Backend.Services.Appointment
             appt.ThoiGianHen = newTime;
             appt.TrangThaiLichHen = "ChoPhanHoi"; // Reset status
             appt.PendingRescheduleById = userId; // Ghi nhận người vừa đề xuất đổi giờ
+            appt.NgayCapNhat = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             // Send notification to the other party
@@ -212,7 +220,9 @@ namespace TimTro_Backend.Services.Appointment
                 DiaDiemHen = appt.DiaDiemHen,
                 GhiChu = appt.GhiChu,
                 TrangThaiLichHen = appt.TrangThaiLichHen,
-                PendingRescheduleById = appt.PendingRescheduleById
+                PendingRescheduleById = appt.PendingRescheduleById,
+                NgayTao = appt.NgayTao,
+                NgayCapNhat = appt.NgayCapNhat
             };
         }
     }

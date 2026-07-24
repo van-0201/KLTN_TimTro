@@ -79,5 +79,19 @@ namespace TimTro_Backend.Controllers
             if (!result) return NotFound();
             return Ok(new { message = "Cập nhật thông tin thành công!" });
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var userDto = await _authService.GetMeAsync(userId);
+            if (userDto == null) return NotFound();
+
+            return Ok(userDto);
+        }
     }
 }

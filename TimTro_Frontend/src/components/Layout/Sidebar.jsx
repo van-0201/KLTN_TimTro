@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FaHome, FaList, FaSearch, FaPlus, FaUsers, FaCalendarAlt, FaShoppingCart, FaTachometerAlt, FaClipboardCheck, FaFlag, FaCreditCard, FaUserCog, FaHandshake, FaHistory } from 'react-icons/fa';
 import { getAuthUser } from '../../utils/auth';
+import api from '../../services/api';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -14,6 +15,18 @@ const Sidebar = ({ isOpen, onClose }) => {
   const isAdminOrMod = isAdmin || isModerator;
   const isChuTro = role === 'ChuTro';
   const isNguoiThue = role === 'NguoiThue';
+
+  const [hanDichVu, setHanDichVu] = useState(null);
+
+  useEffect(() => {
+    if (isChuTro) {
+      api.get('/Auth/me').then(res => {
+        if (res.data && res.data.ngayHetHanDichVu) {
+          setHanDichVu(res.data.ngayHetHanDichVu);
+        }
+      }).catch(err => console.log(err));
+    }
+  }, [isChuTro]);
 
   // Highlight logic khi xem chi tiết bài đăng
   const isHomeActive = currentPath === '/';
@@ -80,6 +93,24 @@ const Sidebar = ({ isOpen, onClose }) => {
                 >
                   <FaShoppingCart /> Mua gói dịch vụ
                 </NavLink>
+                {hanDichVu && (
+                  (() => {
+                    const isExpired = new Date(hanDichVu + (!hanDichVu.endsWith('Z') ? 'Z' : '')) < new Date();
+                    return (
+                      <div style={{
+                        padding: '8px 16px', fontSize: '12px', color: isExpired ? '#ef4444' : 'var(--primary)', 
+                        backgroundColor: isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)', borderRadius: '6px', 
+                        margin: '0 12px 8px 12px', fontWeight: 'bold'
+                      }}>
+                        {isExpired ? 'Đã hết hạn: ' : 'Hạn DV: '} 
+                        {(() => {
+                            const d = new Date(hanDichVu + (!hanDichVu.endsWith('Z') ? 'Z' : ''));
+                            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                        })()}
+                      </div>
+                    );
+                  })()
+                )}
                 <NavLink
                   to="/transaction-history"
                   className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}
@@ -110,18 +141,22 @@ const Sidebar = ({ isOpen, onClose }) => {
               </NavLink>
             )}
 
-            {/* Kiểm duyệt, Báo cáo, Giao dịch: Admin + Moderator */}
-            <NavLink to="/admin/approval" className={() => isApprovalActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
-              <FaClipboardCheck /> Kiểm duyệt bài đăng
-            </NavLink>
+            {/* Kiểm duyệt, Báo cáo, Giao dịch: CHỈ Moderator */}
+            {isModerator && (
+              <>
+                <NavLink to="/admin/approval" className={() => isApprovalActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
+                  <FaClipboardCheck /> Kiểm duyệt bài đăng
+                </NavLink>
 
-            <NavLink to="/admin/reports" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
-              <FaFlag /> Xử lý Báo cáo
-            </NavLink>
+                <NavLink to="/admin/reports" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
+                  <FaFlag /> Xử lý Báo cáo
+                </NavLink>
 
-            <NavLink to="/admin/transactions" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
-              <FaCreditCard /> Duyệt mua gói dịch vụ
-            </NavLink>
+                <NavLink to="/admin/transactions" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
+                  <FaCreditCard /> Duyệt mua gói dịch vụ
+                </NavLink>
+              </>
+            )}
 
             <NavLink to="/transaction-history" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'} onClick={onClose}>
               <FaHistory /> Lịch sử giao dịch

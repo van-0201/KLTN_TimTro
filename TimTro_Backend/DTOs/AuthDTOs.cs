@@ -2,6 +2,21 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TimTro_Backend.DTOs
 {
+    public class CreateUserRequest
+    {
+        [Required(ErrorMessage = "Họ tên không được để trống")]
+        public string HoTen { get; set; }
+
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Số điện thoại không được để trống")]
+        public string SoDienThoai { get; set; }
+
+        [Required(ErrorMessage = "Vai trò không được để trống")]
+        public string VaiTro { get; set; }
+    }
     public class RegisterRequest
     {
         [Required(ErrorMessage = "Họ tên không được để trống")]

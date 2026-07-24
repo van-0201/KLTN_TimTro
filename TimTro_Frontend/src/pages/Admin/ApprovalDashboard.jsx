@@ -44,7 +44,7 @@ const ApprovalDashboard = () => {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">Kiểm duyệt bài đăng (Admin/Moderator)</h1>
+                <h1 className="page-title">Kiểm duyệt bài đăng</h1>
             </div>
 
             {loading ? (

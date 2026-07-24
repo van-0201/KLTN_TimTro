@@ -257,9 +257,25 @@ namespace TimTro_Backend.Services.RoomPost
 
             if (user.VaiTro == "NguoiThue")
             {
-                // Người thuê trọ chỉ được đăng bài tìm người ở ghép, không cần gói dịch vụ
                 if (request.LoaiBaiDang != "TimNguoiOGhep")
                     throw new Exception("Người thuê trọ chỉ được đăng bài tìm người ở ghép.");
+
+                if (user.NgayDangTimOGhepGanNhat != null)
+                {
+                    var daysSinceLastPost = (DateTime.UtcNow - user.NgayDangTimOGhepGanNhat.Value).TotalDays;
+                    if (daysSinceLastPost < 7)
+                    {
+                        int daysLeft = 7 - (int)Math.Floor(daysSinceLastPost);
+                        throw new Exception($"Mỗi 7 ngày bạn chỉ được đăng 1 bài tìm người ở ghép miễn phí. Vui lòng quay lại sau {daysLeft} ngày.");
+                    }
+                }
+
+                var activePostCount = await _context.RoomPosts
+                    .CountAsync(p => p.ChuTroId == userId && p.LoaiBaiDang == "TimNguoiOGhep" && !p.IsHidden);
+                if (activePostCount >= 1)
+                {
+                    throw new Exception("Bạn đang có một bài đăng trên hệ thống (Chờ duyệt / Đang hiển thị / Bị từ chối). Vui lòng cập nhật lại bài cũ hoặc Tạm ẩn/Xóa nó đi trước khi đăng bài mới!");
+                }
             }
             else if (user.VaiTro == "ChuTro")
             {
@@ -293,6 +309,10 @@ namespace TimTro_Backend.Services.RoomPost
             };
 
             _context.RoomPosts.Add(post);
+            if (user.VaiTro == "NguoiThue")
+            {
+                user.NgayDangTimOGhepGanNhat = DateTime.UtcNow;
+            }
             await _context.SaveChangesAsync();
 
             if (request.Images != null && request.Images.Count > 0)
@@ -461,14 +481,14 @@ namespace TimTro_Backend.Services.RoomPost
                 
             if (post == null) return (false, "Bài đăng không tồn tại hoặc bạn không có quyền xóa.");
 
-            if (post.Appointments != null && post.Appointments.Any(a => a.TrangThaiLichHen == "ChoPhanHoi"))
+            if (post.Appointments != null && post.Appointments.Any())
             {
-                return (false, "Không thể xóa vì bài đăng đang có yêu cầu lịch hẹn chưa được xác nhận.");
+                return (false, "Không thể xóa vì bài đăng này đã có lịch sử đặt lịch hẹn. Vui lòng sử dụng tính năng Ẩn bài đăng thay vì Xóa.");
             }
 
-            if (post.Reports != null && post.Reports.Any(r => r.TrangThaiXuLy == "ChoXuLy"))
+            if (post.Reports != null && post.Reports.Any())
             {
-                return (false, "Không thể xóa vì bài đăng đang bị báo cáo vi phạm và chờ Admin xử lý.");
+                return (false, "Không thể xóa vì bài đăng này đã từng bị báo cáo. Vui lòng sử dụng tính năng Ẩn bài đăng thay vì Xóa.");
             }
 
             // Remove images from Cloudinary
@@ -492,6 +512,20 @@ namespace TimTro_Backend.Services.RoomPost
         {
             var post = await _context.RoomPosts.FirstOrDefaultAsync(rp => rp.Id == id && rp.ChuTroId == userId);
             if (post == null) return false;
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null && user.VaiTro == "NguoiThue")
+            {
+                if (post.IsHidden) // Đang ẩn, muốn hiện lên
+                {
+                    var activePostCount = await _context.RoomPosts
+                        .CountAsync(p => p.ChuTroId == userId && p.LoaiBaiDang == "TimNguoiOGhep" && !p.IsHidden);
+                    if (activePostCount >= 1)
+                    {
+                        throw new Exception("Bạn đang có một bài đăng trên hệ thống. Vui lòng Tạm ẩn bài hiện tại trước khi mở lại bài này!");
+                    }
+                }
+            }
 
             post.IsHidden = !post.IsHidden;
             post.NgayCapNhat = DateTime.UtcNow;

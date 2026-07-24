@@ -36,6 +36,7 @@ const MyRoomPosts = () => {
             try {
                 await api.delete(`/RoomPost/${id}`);
                 setPosts(posts.filter(p => p.id !== id));
+                alert('Xóa bài đăng thành công!');
             } catch (error) {
                 alert(error.response?.data || error.response?.data?.message || 'Không thể xóa bài đăng. Vui lòng thử lại.');
             }
@@ -47,7 +48,7 @@ const MyRoomPosts = () => {
             await api.put(`/RoomPost/toggle-hide/${post.id}`);
             setPosts(posts.map(p => p.id === post.id ? { ...p, isHidden: !post.isHidden } : p));
         } catch (error) {
-            alert('Không thể thay đổi trạng thái ẩn hiện.');
+            alert(error.response?.data || error.response?.data?.message || 'Không thể thay đổi trạng thái ẩn hiện.');
         }
     };
 

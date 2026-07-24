@@ -10,5 +10,6 @@ namespace TimTro_Backend.Services.Auth
         Task<string> LoginAsync(LoginRequest request);
         Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
         Task<bool> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
+        Task<UserDto> GetMeAsync(Guid userId);
     }
 }

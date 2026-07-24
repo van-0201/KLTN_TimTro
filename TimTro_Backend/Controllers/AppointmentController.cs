@@ -36,6 +36,7 @@ namespace TimTro_Backend.Controllers
 
         [HttpGet("my-appointments")]
         public async Task<IActionResult> GetMyAppointments(
+            [FromQuery] string? status,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -43,7 +44,7 @@ namespace TimTro_Backend.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
-            var list = await _appointmentService.GetMyAppointmentsAsync(userId, page, pageSize);
+            var list = await _appointmentService.GetMyAppointmentsAsync(userId, status, page, pageSize);
             return Ok(list);
         }
 

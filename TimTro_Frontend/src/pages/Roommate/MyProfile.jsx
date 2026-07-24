@@ -164,6 +164,18 @@ const MyProfile = () => {
         }
     };
 
+    const handleToggleActive = async () => {
+        const actionText = wasInactive ? 'MỞ LẠI' : 'TẠM ẨN';
+        if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} hồ sơ không?`)) return;
+        try {
+            await api.put('/Roommate/profile/toggle-active');
+            setWasInactive(!wasInactive);
+            alert(`Đã ${actionText.toLowerCase()} hồ sơ thành công!`);
+        } catch (error) {
+            alert('Chưa có hồ sơ để ẩn/mở hoặc có lỗi xảy ra.');
+        }
+    };
+
     const renderRadioGroup = (label, key, options) => (
         <div style={{ marginBottom: '16px' }}>
             <label className="form-label" style={{ fontWeight: '600', display: 'block', marginBottom: '8px' }}>{label}</label>
@@ -370,6 +382,21 @@ const MyProfile = () => {
                             >
                                 {loading ? 'Đang lưu...' : '💾 Lưu hồ sơ'}
                             </button>
+
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={handleToggleActive}
+                                style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '16px', marginTop: '12px', border: '1px solid var(--border-color)', color: wasInactive ? '#10b981' : '#ef4444' }}
+                            >
+                                {wasInactive ? '👁️ Mở lại hồ sơ' : '🙈 Tạm ẩn hồ sơ'}
+                            </button>
+                            
+                            {wasInactive && (
+                                <div style={{padding: '12px', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '6px', marginTop: '16px', border: '1px solid #fee2e2', fontSize: '14px'}}>
+                                    ⚠️ Hồ sơ của bạn hiện đang <b>BỊ ẨN</b>. Người khác sẽ không thể tìm thấy bạn trong danh sách ghép phòng.
+                                </div>
+                            )}
                         </div>
                     </div>
 

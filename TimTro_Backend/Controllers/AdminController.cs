@@ -4,6 +4,7 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TimTro_Backend.Services.Admin;
+using TimTro_Backend.DTOs;
 
 namespace TimTro_Backend.Controllers
 {
@@ -23,7 +24,7 @@ namespace TimTro_Backend.Controllers
         /// Xem bài đăng chờ duyệt: Admin và Moderator
         /// </summary>
         [HttpGet("pending-posts")]
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> GetPendingPosts(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
@@ -36,7 +37,7 @@ namespace TimTro_Backend.Controllers
         /// Duyệt bài: Admin và Moderator
         /// </summary>
         [HttpPut("approve-post/{id}")]
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> ApprovePost(Guid id)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -51,7 +52,7 @@ namespace TimTro_Backend.Controllers
         /// Từ chối bài: Admin và Moderator
         /// </summary>
         [HttpPut("reject-post/{id}")]
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> RejectPost(Guid id)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -101,11 +102,30 @@ namespace TimTro_Backend.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUsers(
             [FromQuery] string? search = null,
+            [FromQuery] string? vaiTro = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            var users = await _adminService.GetUsersAsync(search, page, pageSize);
+            var users = await _adminService.GetUsersAsync(search, vaiTro, page, pageSize);
             return Ok(users);
+        }
+
+        /// <summary>
+        /// Tạo tài khoản mới: Chỉ Admin, không được tạo Admin
+        /// </summary>
+        [HttpPost("users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+        {
+            try
+            {
+                await _adminService.CreateUserAsync(request);
+                return Ok(new { message = "Tạo tài khoản thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>

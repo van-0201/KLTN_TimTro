@@ -60,6 +60,19 @@ namespace TimTro_Backend.Controllers
             return Ok(profile);
         }
 
+        [HttpPut("profile/toggle-active")]
+        [Authorize(Roles = "NguoiThue")]
+        public async Task<IActionResult> ToggleProfileActive()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var success = await _roommateService.ToggleProfileActiveAsync(userId);
+            if (!success) return NotFound("Chưa có hồ sơ.");
+            return Ok(new { message = "Cập nhật trạng thái thành công." });
+        }
+
         [HttpGet("profiles")]
         [Authorize(Roles = "NguoiThue")]
         public async Task<IActionResult> SearchProfiles(
@@ -72,6 +85,18 @@ namespace TimTro_Backend.Controllers
 
             var profiles = await _roommateService.SearchProfilesAsync(userId, page, pageSize);
             return Ok(profiles);
+        }
+
+        [HttpGet("match-posts/{targetUserId}")]
+        [Authorize(Roles = "NguoiThue")]
+        public async Task<IActionResult> GetMatchedPosts(Guid targetUserId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var currentUserId))
+                return Unauthorized();
+
+            var posts = await _roommateService.GetMatchedPostsAsync(targetUserId, currentUserId);
+            return Ok(posts);
         }
 
         // ---- Match Request endpoints (chỉ NguoiThue) ----

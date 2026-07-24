@@ -29,5 +29,7 @@ namespace TimTro_Backend.DTOs
         public string? GhiChu { get; set; }
         public string TrangThaiLichHen { get; set; } = string.Empty;
         public Guid? PendingRescheduleById { get; set; }
+        public DateTime NgayTao { get; set; }
+        public DateTime NgayCapNhat { get; set; }
     }
 }

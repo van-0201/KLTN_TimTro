@@ -163,6 +163,10 @@ namespace TimTro_Backend.Services.Roommate
 
                 if (!myGenderOk || !theirGenderOk) return false;
 
+                // Giao nhau ngân sách
+                if (myProfile.NganSachToiThieu > p.NganSachToiDa || p.NganSachToiThieu > myProfile.NganSachToiDa)
+                    return false;
+
                 if (myProfile.ViDoMucTieu == null || p.ViDoMucTieu == null) return false;
                 
                 double distanceKm = CalculateDistance(
@@ -378,6 +382,77 @@ namespace TimTro_Backend.Services.Roommate
                 Status = status,
                 IsSender = request.NguoiGuiId == currentUserId, // Vẫn đúng
                 RequestId = request.Id
+            };
+        }
+
+        public async Task<bool> ToggleProfileActiveAsync(Guid userId)
+        {
+            var profile = await _context.RoommateProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null) return false;
+
+            profile.IsActive = !profile.IsActive;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<RoomPostResponse>> GetMatchedPostsAsync(Guid targetUserId, Guid currentUserId)
+        {
+            var myProfile = await _context.RoommateProfiles.FirstOrDefaultAsync(p => p.UserId == currentUserId);
+            var targetProfile = await _context.RoommateProfiles.FirstOrDefaultAsync(p => p.UserId == targetUserId);
+
+            if (myProfile == null || targetProfile == null || myProfile.ViDoMucTieu == null || myProfile.KinhDoMucTieu == null)
+            {
+                return new List<RoomPostResponse>();
+            }
+
+            // Giao nhau ngân sách
+            if (myProfile.NganSachToiThieu > targetProfile.NganSachToiDa || targetProfile.NganSachToiThieu > myProfile.NganSachToiDa)
+            {
+                return new List<RoomPostResponse>(); // Không giao ngân sách thì không trả bài đăng
+            }
+
+            var targetPosts = await _context.RoomPosts
+                .Include(p => p.ChuTro)
+                .Include(p => p.RoomImages)
+                .Where(p => p.ChuTroId == targetUserId 
+                         && p.LoaiBaiDang == "TimNguoiOGhep" 
+                         && (p.TrangThaiKiemDuyet == "DaDuyet" || p.TrangThaiKiemDuyet == "ChoDuyet") 
+                         && !p.IsHidden)
+                .ToListAsync();
+
+            var matchedPosts = targetPosts.Where(p => {
+                double distanceKm = CalculateDistance(
+                    myProfile.ViDoMucTieu.Value, myProfile.KinhDoMucTieu.Value,
+                    p.ViDoThucTe, p.KinhDoThucTe);
+                double distanceM = distanceKm * 1000;
+                return distanceM <= myProfile.BanKinhTimKiemToiDa;
+            }).ToList();
+
+            return matchedPosts.Select(MapToRoomPostResponse).ToList();
+        }
+
+        private RoomPostResponse MapToRoomPostResponse(TimTro_Backend.Models.RoomPost post)
+        {
+            return new RoomPostResponse
+            {
+                Id = post.Id,
+                ChuTroId = post.ChuTroId,
+                TieuDe = post.TieuDe,
+                MoTaChiTiet = post.MoTaChiTiet,
+                GiaThue = post.GiaThue,
+                DienTich = post.DienTich,
+                DiaChiChiTiet = post.DiaChiChiTiet,
+                ViDoThucTe = post.ViDoThucTe,
+                KinhDoThucTe = post.KinhDoThucTe,
+                LoaiBaiDang = post.LoaiBaiDang,
+                TrangThaiPhong = post.TrangThaiPhong,
+                TrangThaiKiemDuyet = post.TrangThaiKiemDuyet,
+                IsHidden = post.IsHidden,
+                TienIch = post.TienIch,
+                LuotXem = post.LuotXem,
+                Images = post.RoomImages.Select(i => i.DuongDanHinhAnh).ToList(),
+                NguoiDangTen = post.ChuTro?.HoTen ?? "",
+                NguoiDangPhone = post.ChuTro?.SoDienThoai ?? ""
             };
         }
 
