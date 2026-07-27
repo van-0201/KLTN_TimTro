@@ -1,13 +1,10 @@
 import axios from 'axios';
 
-// Khai báo danh sách các đường dẫn API (HTTP và HTTPS)
-const baseUrls = [
-    'http://localhost:5164/api',
-    'https://localhost:7260/api'
-];
+// Lấy API URL từ biến môi trường (nếu có trên Vercel), nếu không thì dùng localhost (khi code ở máy)
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7260/api';
 
 const api = axios.create({
-    baseURL: baseUrls[0], // Bắt đầu thử với URL đầu tiên
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json'
     }
@@ -25,27 +22,10 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Intercept responses to handle fallback & global errors
+// Intercept responses to handle global errors
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const config = error.config;
-        
-        // Nếu không có phản hồi (Lỗi Network/Connection Refused) và chưa thử lại
-        if (!error.response && !config._retry) {
-            config._retry = true;
-            
-            // Tìm URL dự phòng khác với URL vừa thất bại
-            const currentBaseUrl = config.baseURL;
-            const nextBaseUrl = baseUrls.find(url => url !== currentBaseUrl);
-            
-            if (nextBaseUrl) {
-                console.log(`Đổi API URL sang dự phòng: ${nextBaseUrl}`);
-                config.baseURL = nextBaseUrl;
-                api.defaults.baseURL = nextBaseUrl; // Cập nhật cho các request sau
-                return api(config); // Thử gọi lại request
-            }
-        }
 
         // Token expired or invalid
         if (error.response && error.response.status === 401) {
