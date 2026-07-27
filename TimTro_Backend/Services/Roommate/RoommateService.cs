@@ -400,7 +400,7 @@ namespace TimTro_Backend.Services.Roommate
             var myProfile = await _context.RoommateProfiles.FirstOrDefaultAsync(p => p.UserId == currentUserId);
             var targetProfile = await _context.RoommateProfiles.FirstOrDefaultAsync(p => p.UserId == targetUserId);
 
-            if (myProfile == null || targetProfile == null || myProfile.ViDoMucTieu == null || myProfile.KinhDoMucTieu == null)
+            if (myProfile == null || targetProfile == null || myProfile.ViDoMucTieu == null || myProfile.KinhDoMucTieu == null || targetProfile.ViDoMucTieu == null || targetProfile.KinhDoMucTieu == null)
             {
                 return new List<RoomPostResponse>();
             }
@@ -411,6 +411,11 @@ namespace TimTro_Backend.Services.Roommate
                 return new List<RoomPostResponse>(); // Không giao ngân sách thì không trả bài đăng
             }
 
+            // Tính khoảng ngân sách giao nhau
+            double minIntersect = Math.Max(myProfile.NganSachToiThieu ?? 0, targetProfile.NganSachToiThieu ?? 0);
+            double maxIntersect = Math.Min(myProfile.NganSachToiDa ?? double.MaxValue, targetProfile.NganSachToiDa ?? double.MaxValue);
+
+            // NGUỒN 1: Bài đăng "TimNguoiOGhep" của đối phương
             var targetPosts = await _context.RoomPosts
                 .Include(p => p.ChuTro)
                 .Include(p => p.RoomImages)
@@ -420,7 +425,7 @@ namespace TimTro_Backend.Services.Roommate
                          && !p.IsHidden)
                 .ToListAsync();
 
-            var matchedPosts = targetPosts.Where(p => {
+            var matchedSource1 = targetPosts.Where(p => {
                 double distanceKm = CalculateDistance(
                     myProfile.ViDoMucTieu.Value, myProfile.KinhDoMucTieu.Value,
                     p.ViDoThucTe, p.KinhDoThucTe);
@@ -428,7 +433,42 @@ namespace TimTro_Backend.Services.Roommate
                 return distanceM <= myProfile.BanKinhTimKiemToiDa;
             }).ToList();
 
-            return matchedPosts.Select(MapToRoomPostResponse).ToList();
+            // NGUỒN 2: Bài đăng của các chủ trọ khác trên hệ thống (Cho thuê phòng, nhà nguyên căn,...)
+            var systemPosts = await _context.RoomPosts
+                .Include(p => p.ChuTro)
+                .Include(p => p.RoomImages)
+                .Where(p => p.LoaiBaiDang != "TimNguoiOGhep"
+                         && p.TrangThaiKiemDuyet == "DaDuyet"
+                         && p.TrangThaiPhong == "ConTrong"
+                         && !p.IsHidden)
+                .ToListAsync();
+
+            var matchedSource2 = systemPosts.Where(p => {
+                // 1. Kiểm tra ngân sách chung
+                if ((double)p.GiaThue < minIntersect || (double)p.GiaThue > maxIntersect)
+                    return false;
+
+                // 2. Kiểm tra khoảng cách tới BẠN
+                double distMyKm = CalculateDistance(
+                    myProfile.ViDoMucTieu.Value, myProfile.KinhDoMucTieu.Value,
+                    p.ViDoThucTe, p.KinhDoThucTe);
+                if ((distMyKm * 1000) > myProfile.BanKinhTimKiemToiDa)
+                    return false;
+
+                // 3. Kiểm tra khoảng cách tới ĐỐI PHƯƠNG
+                double distTargetKm = CalculateDistance(
+                    targetProfile.ViDoMucTieu.Value, targetProfile.KinhDoMucTieu.Value,
+                    p.ViDoThucTe, p.KinhDoThucTe);
+                if ((distTargetKm * 1000) > targetProfile.BanKinhTimKiemToiDa)
+                    return false;
+
+                return true;
+            }).ToList();
+
+            // Gộp cả 2 nguồn và trả về
+            var combinedPosts = matchedSource1.Concat(matchedSource2).ToList();
+
+            return combinedPosts.Select(MapToRoomPostResponse).ToList();
         }
 
         private RoomPostResponse MapToRoomPostResponse(TimTro_Backend.Models.RoomPost post)
