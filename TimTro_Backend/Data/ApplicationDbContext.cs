@@ -51,7 +51,7 @@ namespace TimTro_Backend.Data
                 entity.Property(e => e.ChuTroId).HasColumnName("MaChuTro");
                 entity.Property(e => e.NguoiDuyetId).HasColumnName("MaNguoiDuyet");
                 entity.HasOne(e => e.ChuTro).WithMany(u => u.RoomPosts).HasForeignKey(e => e.ChuTroId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.NguoiDuyet).WithMany().HasForeignKey(e => e.NguoiDuyetId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.NguoiDuyet).WithMany().HasForeignKey(e => e.NguoiDuyetId).OnDelete(DeleteBehavior.Restrict);
             });
 
             // RoomImage -> HinhAnhPhongTro
@@ -94,7 +94,7 @@ namespace TimTro_Backend.Data
 
                 entity.HasOne(e => e.NguoiGui).WithMany(u => u.SentReports).HasForeignKey(e => e.NguoiGuiId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.TaiKhoanBiBaoCao).WithMany(u => u.ReceivedReports).HasForeignKey(e => e.TaiKhoanBiBaoCaoId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.NguoiKiemDuyetXuLy).WithMany(u => u.ProcessedReports).HasForeignKey(e => e.NguoiKiemDuyetXuLyId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.NguoiKiemDuyetXuLy).WithMany(u => u.ProcessedReports).HasForeignKey(e => e.NguoiKiemDuyetXuLyId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.BaiDangBiBaoCao).WithMany(p => p.Reports).HasForeignKey(e => e.BaiDangBiBaoCaoId).OnDelete(DeleteBehavior.SetNull);
             });
 
@@ -108,7 +108,7 @@ namespace TimTro_Backend.Data
                 entity.Property(e => e.NguoiDuyetId).HasColumnName("MaNguoiDuyet");
 
                 entity.HasOne(e => e.NguoiDung).WithMany(u => u.Transactions).HasForeignKey(e => e.NguoiDungId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.NguoiDuyet).WithMany(u => u.ProcessedTransactions).HasForeignKey(e => e.NguoiDuyetId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.NguoiDuyet).WithMany(u => u.ProcessedTransactions).HasForeignKey(e => e.NguoiDuyetId).OnDelete(DeleteBehavior.Restrict);
             });
 
             // MatchRequest -> YeuCauGhepNoi
