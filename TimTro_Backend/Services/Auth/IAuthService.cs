@@ -6,6 +6,7 @@ namespace TimTro_Backend.Services.Auth
 {
     public interface IAuthService
     {
+        Task SendRegisterOtpAsync(string email);
         Task<User> RegisterAsync(RegisterRequest request);
         Task<string> LoginAsync(LoginRequest request);
         Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);

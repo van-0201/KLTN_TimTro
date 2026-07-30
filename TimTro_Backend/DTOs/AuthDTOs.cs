@@ -2,6 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TimTro_Backend.DTOs
 {
+    public class SendOtpRequest
+    {
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string Email { get; set; }
+    }
+
     public class CreateUserRequest
     {
         [Required(ErrorMessage = "Họ tên không được để trống")]
@@ -12,6 +19,7 @@ namespace TimTro_Backend.DTOs
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống")]
+        [RegularExpression(@"^(84|0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string SoDienThoai { get; set; }
 
         [Required(ErrorMessage = "Vai trò không được để trống")]
@@ -27,6 +35,7 @@ namespace TimTro_Backend.DTOs
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống")]
+        [RegularExpression(@"^(84|0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string SoDienThoai { get; set; }
 
         [Required(ErrorMessage = "Mật khẩu không được để trống")]
@@ -35,6 +44,9 @@ namespace TimTro_Backend.DTOs
 
         [Required(ErrorMessage = "Vai trò không được để trống")]
         public string VaiTro { get; set; } // NguoiThue, ChuTro
+
+        [Required(ErrorMessage = "OTP không được để trống")]
+        public string OTP { get; set; }
     }
 
     public class LoginRequest
@@ -58,6 +70,8 @@ namespace TimTro_Backend.DTOs
     public class UpdateProfileRequest
     {
         public string HoTen { get; set; } = string.Empty;
+        
+        [RegularExpression(@"^(84|0[3|5|7|8|9])+([0-9]{8})\b", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string SoDienThoai { get; set; } = string.Empty;
     }
 

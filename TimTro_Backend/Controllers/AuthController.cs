@@ -19,6 +19,20 @@ namespace TimTro_Backend.Controllers
             _authService = authService;
         }
 
+        [HttpPost("send-otp")]
+        public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
+        {
+            try
+            {
+                await _authService.SendRegisterOtpAsync(request.Email);
+                return Ok(new { Message = "Mã OTP đã được gửi đến email của bạn." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {

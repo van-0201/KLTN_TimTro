@@ -25,6 +25,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 // Add services to the container.
+builder.Services.AddMemoryCache(); // Add memory cache
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IRoomPostService, RoomPostService>();
