@@ -26,6 +26,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 // Add services to the container.
 builder.Services.AddMemoryCache(); // Add memory cache
+
+// Thêm Rate Limiting dựa trên IP (chống spam API gửi OTP)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("SendOtpPolicy", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(ip, _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3, // Tối đa 3 lần request gửi OTP
+            Window = TimeSpan.FromMinutes(1), // Trong vòng 1 phút
+            QueueLimit = 0
+        });
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IRoomPostService, RoomPostService>();
@@ -95,6 +112,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowReact");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

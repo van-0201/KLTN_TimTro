@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using TimTro_Backend.DTOs;
 using TimTro_Backend.Services.Auth;
 
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace TimTro_Backend.Controllers
 {
     [Route("api/[controller]")]
@@ -20,6 +22,7 @@ namespace TimTro_Backend.Controllers
         }
 
         [HttpPost("send-otp")]
+        [EnableRateLimiting("SendOtpPolicy")]
         public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
         {
             try
