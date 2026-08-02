@@ -128,7 +128,7 @@ const AppointmentList = () => {
                             <div>
                                 <h3 style={{marginBottom: '8px', color: 'var(--text-main)'}}>
                                     {appt.roomPostId ? (
-                                        <Link to={`/room-posts/${appt.roomPostId}`} style={{color: 'var(--primary)', textDecoration: 'none'}}>
+                                        <Link to={`/room-posts/${appt.roomPostId}`} style={{color: 'var(--text-main)', textDecoration: 'none'}}>
                                             {appt.loaiLichHen === 'XemPhongTro' ? 'Lịch Xem Phòng: ' : 'Lịch Gặp Mặt Ghép: '}
                                             {appt.roomPostTitle || 'Phòng trọ'}
                                         </Link>
@@ -175,7 +175,7 @@ const AppointmentList = () => {
                                             </div>
                                             <div>
                                                 <div style={{fontWeight: 'bold', color: 'var(--text-main)'}}>{appt.nguoiKhoiTaoId === userId ? appt.nguoiNhanHenTen : appt.nguoiKhoiTaoTen}</div>
-                                                <div style={{color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px'}}><FaPhoneAlt /> {appt.nguoiKhoiTaoId === userId ? appt.nguoiNhanHenPhone : appt.nguoiKhoiTaoPhone}</div>
+                                                <div style={{color: 'var(--text-main)', fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px'}}><FaPhoneAlt /> {appt.nguoiKhoiTaoId === userId ? appt.nguoiNhanHenPhone : appt.nguoiKhoiTaoPhone}</div>
                                             </div>
                                             <button 
                                                 className="btn-primary" 

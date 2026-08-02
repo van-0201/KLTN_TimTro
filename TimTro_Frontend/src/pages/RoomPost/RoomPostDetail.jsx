@@ -326,9 +326,9 @@ const RoomPostDetail = () => {
                 <div style={{ marginBottom: '24px' }}>
                     <h1 style={{ color: 'var(--text-main)', fontSize: '32px', margin: '0 0 12px 0', fontWeight: 'bold', lineHeight: '1.3' }}>{post.tieuDe}</h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', color: 'var(--text-muted)', fontSize: '15px', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaMapMarkerAlt style={{ color: 'var(--primary)' }} /> <span>{post.diaChiChiTiet}</span></div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaRulerCombined style={{ color: 'var(--primary)' }} /> <span>{post.dienTich} m²</span></div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaTag style={{ color: 'var(--primary)' }} /> <span>{post.loaiBaiDang === 'ChoThuePhong' ? 'Phòng trọ' : (post.loaiBaiDang === 'NhaNguyenCan' ? 'Nhà nguyên căn' : 'Ở ghép')}</span></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaMapMarkerAlt /> <span>{post.diaChiChiTiet}</span></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaRulerCombined /> <span>{post.dienTich} m²</span></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FaTag /> <span>{post.loaiBaiDang === 'ChoThuePhong' ? 'Phòng trọ' : (post.loaiBaiDang === 'NhaNguyenCan' ? 'Nhà nguyên căn' : 'Ở ghép')}</span></div>
                     </div>
                 </div>
 
@@ -458,7 +458,7 @@ const RoomPostDetail = () => {
                                         </div>
                                         <div style={{ minWidth: '0' }}>
                                             <div style={{ fontWeight: 'bold', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{post.nguoiDangTen}</div>
-                                            <div style={{ color: 'var(--primary)', fontWeight: '600', marginTop: '6px', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}><FaPhoneAlt /> {post.nguoiDangPhone}</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600', marginTop: '6px', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}><FaPhoneAlt /> {post.nguoiDangPhone}</div>
                                         </div>
                                     </div>
                                     <button

@@ -206,7 +206,7 @@ const ReportList = () => {
                                                 state={{ context: 'moderator' }}
                                                 style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                                    color: 'var(--primary)', textDecoration: 'none',
+                                                    color: 'var(--text-main)', textDecoration: 'none',
                                                     fontWeight: '600', fontSize: '14px', marginBottom: '10px',
                                                     padding: '8px 14px', borderRadius: '8px',
                                                     background: 'rgba(99, 102, 241, 0.08)',

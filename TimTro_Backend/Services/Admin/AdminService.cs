@@ -30,7 +30,7 @@ namespace TimTro_Backend.Services.Admin
                 .Include(rp => rp.ChuTro)
                 .Include(rp => rp.RoomImages)
                 .Where(rp => rp.TrangThaiKiemDuyet == "ChoDuyet")
-                .OrderByDescending(rp => rp.Id);
+                .OrderByDescending(rp => rp.NgayTao);
 
             var totalRecords = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

@@ -95,7 +95,7 @@ namespace TimTro_Backend.Services.RoomPost
                 }
                 
                 var totalRecords = filteredPosts.Count;
-                var items = filteredPosts.OrderByDescending(p => p.Id)
+                var items = filteredPosts.OrderByDescending(p => p.NgayTao)
                                  .Skip((page - 1) * pageSize)
                                  .Take(pageSize)
                                  .Select(MapToResponse)
@@ -112,7 +112,7 @@ namespace TimTro_Backend.Services.RoomPost
             else 
             {
                 var totalRecords = await query.CountAsync();
-                var items = await query.OrderByDescending(p => p.Id)
+                var items = await query.OrderByDescending(p => p.NgayTao)
                                  .Skip((page - 1) * pageSize)
                                  .Take(pageSize)
                                  .ToListAsync();
@@ -194,7 +194,7 @@ namespace TimTro_Backend.Services.RoomPost
                           && !rp.IsHidden
                           && rp.ChuTro.TrangThaiTaiKhoan == true
                           && (rp.ChuTro.VaiTro == "NguoiThue" || (rp.ChuTro.NgayHetHanDichVu != null && rp.ChuTro.NgayHetHanDichVu > DateTime.UtcNow)))
-                .OrderByDescending(rp => rp.Id);
+                .OrderByDescending(rp => rp.NgayTao);
 
             var totalRecords = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -214,7 +214,7 @@ namespace TimTro_Backend.Services.RoomPost
                 .Include(rp => rp.ChuTro)
                 .Include(rp => rp.RoomImages)
                 .Where(rp => rp.ChuTroId == userId)
-                .OrderByDescending(rp => rp.Id);
+                .OrderByDescending(rp => rp.NgayTao);
 
             var totalRecords = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
